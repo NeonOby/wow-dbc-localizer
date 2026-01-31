@@ -21,6 +21,8 @@ namespace DbcMerger
 			if (mpqArgs.IsMultiPatchDir)
 			{
 				var multiPatchDir = Helpers.GetArg(args, "--multi-patch-dir");
+				if (string.IsNullOrWhiteSpace(multiPatchDir))
+					return Fail("Missing --multi-patch-dir argument");
 				return ExecuteMultiPatch(multiPatchDir, args);
 			}
 

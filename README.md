@@ -60,22 +60,18 @@ DBC-Localizer/
 ## Installation
 
 ### Prerequisites
-- **.NET 9.0 SDK** (or .NET 9.0 Runtime for the compiled executable)
-- **mpqcli.exe** (included in tools/)
+- **.NET 10.0 SDK**
 - **Input MPQ files** in appropriate folders
 
 ### Quick Setup
 ```bash
-# Windows (PowerShell)
-.\setup.ps1
-cd dbc-merger
-dotnet build -c Release
-
-# Linux/macOS (Bash)
-./setup.sh
 cd dbc-merger
 dotnet build -c Release
 ```
+
+The build will automatically download:
+- **dbcd-lib** from https://github.com/wowdev/DBCD
+- **mpqcli** from https://github.com/TheGrayDot/mpqcli/releases
 
 **For detailed setup instructions, see [SETUP.md](SETUP.md)**
 

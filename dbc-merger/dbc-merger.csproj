@@ -13,6 +13,44 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Automatically download mpqcli tool before build (Windows) -->
+  <Target Name="EnsureMpqCli" BeforeTargets="BeforeResolveReferences" Condition="'$(OS)' == 'Windows_NT'">
+    <PropertyGroup>
+      <ToolsDir>$(MSBuildProjectDirectory)\..\tools</ToolsDir>
+      <MpqCliPath>$(ToolsDir)\mpqcli.exe</MpqCliPath>
+      <MpqCliUrl>https://github.com/TheGrayDot/mpqcli/releases/download/v0.9.6/mpqcli-windows-amd64.exe</MpqCliUrl>
+    </PropertyGroup>
+
+    <Message Text="Checking mpqcli dependency..." Importance="high" />
+    <Message Text="Looking for: $(MpqCliPath)" Importance="normal" />
+
+    <MakeDir Directories="$(ToolsDir)" Condition="!Exists('$(ToolsDir)')" />
+
+    <Exec Command="powershell -NoProfile -Command &quot;Invoke-WebRequest -Uri '$(MpqCliUrl)' -OutFile '$(MpqCliPath)'&quot;"
+          Condition="!Exists('$(MpqCliPath)')" />
+
+    <Message Text="✓ mpqcli ready at: $(MpqCliPath)" Importance="high" Condition="Exists('$(MpqCliPath)')" />
+  </Target>
+
+  <!-- Automatically download mpqcli tool before build (Linux) -->
+  <Target Name="EnsureMpqCliUnix" BeforeTargets="BeforeResolveReferences" Condition="'$(OS)' != 'Windows_NT'">
+    <PropertyGroup>
+      <ToolsDir>$(MSBuildProjectDirectory)/../tools</ToolsDir>
+      <MpqCliPath>$(ToolsDir)/mpqcli</MpqCliPath>
+      <MpqCliUrlAmd64>https://github.com/TheGrayDot/mpqcli/releases/download/v0.9.6/mpqcli-linux-amd64-glibc</MpqCliUrlAmd64>
+      <MpqCliUrlArm64>https://github.com/TheGrayDot/mpqcli/releases/download/v0.9.6/mpqcli-linux-arm64-glibc</MpqCliUrlArm64>
+    </PropertyGroup>
+
+    <Message Text="Checking mpqcli dependency..." Importance="high" />
+    <Message Text="Looking for: $(MpqCliPath)" Importance="normal" />
+
+    <MakeDir Directories="$(ToolsDir)" Condition="!Exists('$(ToolsDir)')" />
+
+    <Exec Condition="!Exists('$(MpqCliPath)')" Command="bash -c &quot;set -e; if [ \&quot;$(uname)\&quot; = \&quot;Linux\&quot; ]; then arch=$(uname -m); if [ \&quot;$arch\&quot; = \&quot;x86_64\&quot; ]; then url=\&quot;$(MpqCliUrlAmd64)\&quot;; elif [ \&quot;$arch\&quot; = \&quot;aarch64\&quot; ] || [ \&quot;$arch\&quot; = \&quot;arm64\&quot; ]; then url=\&quot;$(MpqCliUrlArm64)\&quot;; else echo \&quot;Unsupported architecture: $arch\&quot;; exit 1; fi; curl -L \&quot;$url\&quot; -o \&quot;$(MpqCliPath)\&quot;; chmod +x \&quot;$(MpqCliPath)\&quot;; else echo \&quot;mpqcli binary not available for macOS; please provide tools/mpqcli manually.\&quot;; fi&quot;" />
+
+    <Message Text="✓ mpqcli ready at: $(MpqCliPath)" Importance="high" Condition="Exists('$(MpqCliPath)')" />
+  </Target>
+
   <!-- Automatically download dependencies before build -->
   <Target Name="EnsureDependencies" BeforeTargets="BeforeResolveReferences">
     <PropertyGroup>

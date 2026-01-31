@@ -8,12 +8,12 @@ namespace DbcMerger
 	/// </summary>
 	internal class MergeArgs
 	{
-		public string BasePath { get; set; }
-		public string LocalePath { get; set; }
-		public string DefsPath { get; set; }
-		public string OutputPath { get; set; }
-		public string Build { get; set; }
-		public string LocaleCode { get; set; }
+		public string BasePath { get; set; } = string.Empty;
+		public string LocalePath { get; set; } = string.Empty;
+		public string DefsPath { get; set; } = string.Empty;
+		public string OutputPath { get; set; } = string.Empty;
+		public string Build { get; set; } = string.Empty;
+		public string LocaleCode { get; set; } = string.Empty;
 
 		public bool IsValid => !string.IsNullOrWhiteSpace(BasePath) && 
 		                       !string.IsNullOrWhiteSpace(LocalePath) && 
@@ -24,10 +24,10 @@ namespace DbcMerger
 		{
 			return new MergeArgs
 			{
-				BasePath = Helpers.GetArg(args, "--base"),
-				LocalePath = Helpers.GetArg(args, "--locale"),
-				DefsPath = Helpers.GetArg(args, "--defs"),
-				OutputPath = Helpers.GetArg(args, "--output"),
+				BasePath = Helpers.GetArg(args, "--base") ?? string.Empty,
+				LocalePath = Helpers.GetArg(args, "--locale") ?? string.Empty,
+				DefsPath = Helpers.GetArg(args, "--defs") ?? string.Empty,
+				OutputPath = Helpers.GetArg(args, "--output") ?? string.Empty,
 				Build = Helpers.GetArg(args, "--build") ?? defaultBuild,
 				LocaleCode = Helpers.GetArg(args, "--lang") ?? "deDE"
 			};
@@ -39,21 +39,21 @@ namespace DbcMerger
 	/// </summary>
 	internal class MergeMpqArgs
 	{
-		public string PatchMpq { get; set; }
-		public string LocaleMpq { get; set; }
+		public string PatchMpq { get; set; } = string.Empty;
+		public string LocaleMpq { get; set; } = string.Empty;
 		public List<string> LocaleMpqs { get; set; } = new();
-		public string DefsPath { get; set; }
-		public string OutputMpq { get; set; }
-		public string DbcRelPath { get; set; }
+		public string DefsPath { get; set; } = string.Empty;
+		public string OutputMpq { get; set; } = string.Empty;
+		public string DbcRelPath { get; set; } = string.Empty;
 		public List<string> DbcList { get; set; } = new();
-		public string Build { get; set; }
-		public string LocaleCode { get; set; }
+		public string Build { get; set; } = string.Empty;
+		public string LocaleCode { get; set; } = string.Empty;
 		public List<string> Languages { get; set; } = new();
-		public string MpqCliPath { get; set; }
+		public string MpqCliPath { get; set; } = string.Empty;
 		public bool KeepTemp { get; set; }
 		public bool Interactive { get; set; }
 		public bool AutoAll { get; set; }
-		public string ReportPath { get; set; }
+		public string ReportPath { get; set; } = string.Empty;
 		public bool IsMultiPatchDir { get; set; }
 
 		public bool IsValid => !string.IsNullOrWhiteSpace(PatchMpq) && 
@@ -98,19 +98,19 @@ namespace DbcMerger
 
 			return new MergeMpqArgs
 			{
-				PatchMpq = patchArg,
-				LocaleMpq = localeMpqArg,
+				PatchMpq = patchArg ?? string.Empty,
+				LocaleMpq = localeMpqArg ?? string.Empty,
 				LocaleMpqs = localeMpqs,
-				DefsPath = Helpers.GetArg(args, "--defs"),
-				OutputMpq = Helpers.GetArg(args, "--output"),
-				DbcRelPath = dbcArg,
+				DefsPath = Helpers.GetArg(args, "--defs") ?? string.Empty,
+				OutputMpq = Helpers.GetArg(args, "--output") ?? string.Empty,
+				DbcRelPath = dbcArg ?? string.Empty,
 				DbcList = dbcList,
 				Build = Helpers.GetArg(args, "--build") ?? defaultBuild,
 				LocaleCode = localeCode,
 				Languages = languages,
 				MpqCliPath = Helpers.GetArg(args, "--mpqcli") ?? MpqHelper.GetDefaultMpqCliPath(),
 				KeepTemp = args.Contains("--keep-temp", StringComparer.OrdinalIgnoreCase),
-				ReportPath = Helpers.GetArg(args, "--report"),
+				ReportPath = Helpers.GetArg(args, "--report") ?? string.Empty,
 				AutoAll = args.Contains("--auto", StringComparer.OrdinalIgnoreCase) || args.Contains("--all", StringComparer.OrdinalIgnoreCase),
 				Interactive = args.Contains("--select", StringComparer.OrdinalIgnoreCase),
 				IsMultiPatchDir = !string.IsNullOrWhiteSpace(multiPatchDir)
@@ -123,12 +123,12 @@ namespace DbcMerger
 	/// </summary>
 	internal class ScanMpqArgs
 	{
-		public string PatchMpq { get; set; }
-		public string LocaleMpq { get; set; }
+		public string PatchMpq { get; set; } = string.Empty;
+		public string LocaleMpq { get; set; } = string.Empty;
 		public List<string> LocaleMpqs { get; set; } = new();
-		public string DefsPath { get; set; }
-		public string Build { get; set; }
-		public string MpqCliPath { get; set; }
+		public string DefsPath { get; set; } = string.Empty;
+		public string Build { get; set; } = string.Empty;
+		public string MpqCliPath { get; set; } = string.Empty;
 
 		public bool IsValid => !string.IsNullOrWhiteSpace(PatchMpq) && 
 		                       !string.IsNullOrWhiteSpace(DefsPath);
@@ -150,10 +150,10 @@ namespace DbcMerger
 
 			return new ScanMpqArgs
 			{
-				PatchMpq = Helpers.GetArg(args, "--patch"),
-				LocaleMpq = localeMpqArg,
+				PatchMpq = Helpers.GetArg(args, "--patch") ?? string.Empty,
+				LocaleMpq = localeMpqArg ?? string.Empty,
 				LocaleMpqs = localeMpqs,
-				DefsPath = Helpers.GetArg(args, "--defs"),
+				DefsPath = Helpers.GetArg(args, "--defs") ?? string.Empty,
 				Build = Helpers.GetArg(args, "--build") ?? defaultBuild,
 				MpqCliPath = Helpers.GetArg(args, "--mpqcli") ?? MpqHelper.GetDefaultMpqCliPath()
 			};
