@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dbc-merger", "dbc-merger\dbc-merger.csproj", "{C45B2D4F-7B9E-4A2F-8B3D-9E5C7F2A1B0C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBCD", "test-dbcd\DBCD\DBCD.csproj", "{9A4C5E1F-3B2D-4A5B-8C7D-6E9F0A1B2C3D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBCD.IO", "test-dbcd\DBCD.IO\DBCD.IO.csproj", "{7D8E9F0A-1B2C-3D4E-5F6A-7B8C9D0E1F2A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C45B2D4F-7B9E-4A2F-8B3D-9E5C7F2A1B0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C45B2D4F-7B9E-4A2F-8B3D-9E5C7F2A1B0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C45B2D4F-7B9E-4A2F-8B3D-9E5C7F2A1B0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C45B2D4F-7B9E-4A2F-8B3D-9E5C7F2A1B0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A4C5E1F-3B2D-4A5B-8C7D-6E9F0A1B2C3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A4C5E1F-3B2D-4A5B-8C7D-6E9F0A1B2C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A4C5E1F-3B2D-4A5B-8C7D-6E9F0A1B2C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A4C5E1F-3B2D-4A5B-8C7D-6E9F0A1B2C3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D8E9F0A-1B2C-3D4E-5F6A-7B8C9D0E1F2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D8E9F0A-1B2C-3D4E-5F6A-7B8C9D0E1F2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D8E9F0A-1B2C-3D4E-5F6A-7B8C9D0E1F2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D8E9F0A-1B2C-3D4E-5F6A-7B8C9D0E1F2A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

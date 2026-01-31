@@ -1,0 +1,59 @@
+{
+  "TimestampUtc": "2026-01-31T21:57:02.3038827Z",
+  "Build": "3.3.5.12340",
+  "PatchMpq": "../input/patch/patch-B.mpq",
+  "OutputMpq": "../output/patch-B.mpq",
+  "LocaleMpqs": [
+    "..\\input\\locale\\locale-deDE.MPQ",
+    "..\\input\\locale\\patch-deDE.MPQ",
+    "..\\input\\locale\\patch-deDE-2.MPQ",
+    "..\\input\\locale\\patch-deDE-3.MPQ"
+  ],
+  "Languages": [
+    "deDE",
+    "deDE",
+    "deDE",
+    "deDE"
+  ],
+  "SelectedDbcs": [
+    "DBFilesClient\\Spell.dbc",
+    "DBFilesClient\\SpellFocusObject.dbc",
+    "DBFilesClient\\SpellItemEnchantment.dbc",
+    "DBFilesClient\\SpellRange.dbc",
+    "DBFilesClient\\SpellShapeshiftForm.dbc"
+  ],
+  "Warnings": [],
+  "TotalTablesMerged": 20,
+  "TotalRowsMerged": 118358,
+  "TotalFieldsUpdated": 152843,
+  "PerLocale": [
+    {
+      "LocaleMpq": "..\\input\\locale\\locale-deDE.MPQ",
+      "Language": "deDE",
+      "TablesMerged": 5,
+      "RowsMerged": 21620,
+      "FieldsUpdated": 21640
+    },
+    {
+      "LocaleMpq": "..\\input\\locale\\patch-deDE.MPQ",
+      "Language": "deDE",
+      "TablesMerged": 5,
+      "RowsMerged": 32066,
+      "FieldsUpdated": 32086
+    },
+    {
+      "LocaleMpq": "..\\input\\locale\\patch-deDE-2.MPQ",
+      "Language": "deDE",
+      "TablesMerged": 5,
+      "RowsMerged": 32039,
+      "FieldsUpdated": 32059
+    },
+    {
+      "LocaleMpq": "..\\input\\locale\\patch-deDE-3.MPQ",
+      "Language": "deDE",
+      "TablesMerged": 5,
+      "RowsMerged": 32633,
+      "FieldsUpdated": 67058
+    }
+  ]
+}

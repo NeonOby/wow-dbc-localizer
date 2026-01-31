@@ -1,0 +1,20 @@
+{
+  "patch": "../input/patch/",
+  "locale-mpqs": [
+    "../input/locale/locale-deDE.MPQ",
+    "../input/locale/patch-deDE.MPQ",
+    "../input/locale/patch-deDE-2.MPQ",
+    "../input/locale/patch-deDE-3.MPQ"
+  ],
+  "langs": [
+    "deDE",
+    "deDE",
+    "deDE",
+    "deDE"
+  ],
+  "defs": "../test-dbcd/definitions/definitions",
+  "output": "../output/",
+  "auto": true,
+  "verbose": false,
+  "report": "../output/"
+}

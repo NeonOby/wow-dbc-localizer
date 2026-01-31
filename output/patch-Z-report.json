@@ -1,0 +1,60 @@
+{
+  "TimestampUtc": "2026-01-31T21:57:16.4923735Z",
+  "Build": "3.3.5.12340",
+  "PatchMpq": "../input/patch/patch-Z.mpq",
+  "OutputMpq": "../output/patch-Z.mpq",
+  "LocaleMpqs": [
+    "..\\input\\locale\\locale-deDE.MPQ",
+    "..\\input\\locale\\patch-deDE.MPQ",
+    "..\\input\\locale\\patch-deDE-2.MPQ",
+    "..\\input\\locale\\patch-deDE-3.MPQ"
+  ],
+  "Languages": [
+    "deDE",
+    "deDE",
+    "deDE",
+    "deDE"
+  ],
+  "SelectedDbcs": [
+    "DBFilesClient\\Achievement.dbc",
+    "DBFilesClient\\Achievement_Category.dbc",
+    "DBFilesClient\\Achievement_Criteria.dbc",
+    "DBFilesClient\\AreaTable.dbc",
+    "DBFilesClient\\CharTitles.dbc",
+    "DBFilesClient\\SpellItemEnchantment.dbc"
+  ],
+  "Warnings": [],
+  "TotalTablesMerged": 24,
+  "TotalRowsMerged": 34489,
+  "TotalFieldsUpdated": 39140,
+  "PerLocale": [
+    {
+      "LocaleMpq": "..\\input\\locale\\locale-deDE.MPQ",
+      "Language": "deDE",
+      "TablesMerged": 6,
+      "RowsMerged": 7092,
+      "FieldsUpdated": 7853
+    },
+    {
+      "LocaleMpq": "..\\input\\locale\\patch-deDE.MPQ",
+      "Language": "deDE",
+      "TablesMerged": 6,
+      "RowsMerged": 9171,
+      "FieldsUpdated": 10469
+    },
+    {
+      "LocaleMpq": "..\\input\\locale\\patch-deDE-2.MPQ",
+      "Language": "deDE",
+      "TablesMerged": 6,
+      "RowsMerged": 9125,
+      "FieldsUpdated": 10422
+    },
+    {
+      "LocaleMpq": "..\\input\\locale\\patch-deDE-3.MPQ",
+      "Language": "deDE",
+      "TablesMerged": 6,
+      "RowsMerged": 9101,
+      "FieldsUpdated": 10396
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+# C# / .NET
+bin/
+obj/
+*.user
+*.suo
+*.csproj.user
+*.sln.user
+*.vs/
+.vs/
+packages/
+.nuget/
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# Virtual Environment (legacy Python)
+venv/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python (legacy)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Project specific - Large files and generated
+*.mpq
+*.log
+
+# Work directories
+output/Patch-*.mpq
+temp/
+
+# IDE temp files
+launch.json
+
+# OS files
+Thumbs.db
+.DS_Store
