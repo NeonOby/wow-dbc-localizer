@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\test-dbcd\DBCD\DBCD.csproj" />
-    <ProjectReference Include="..\test-dbcd\DBCD.IO\DBCD.IO.csproj" />
+    <ProjectReference Include="..\dbcd-lib\DBCD\DBCD.csproj" />
+    <ProjectReference Include="..\dbcd-lib\DBCD.IO\DBCD.IO.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

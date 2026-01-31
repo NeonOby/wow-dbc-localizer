@@ -1,7 +1,0 @@
-bitarray==2.4.1
-modgrammar==0.10
-multimethod
-bidict
-numpy
-Cython
-setuptools
