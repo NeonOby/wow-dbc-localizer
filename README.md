@@ -64,16 +64,20 @@ DBC-Localizer/
 - **mpqcli.exe** (included in tools/)
 - **Input MPQ files** in appropriate folders
 
-### Build from Source
+### Quick Setup
 ```bash
+# Windows (PowerShell)
+.\setup.ps1
+cd dbc-merger
+dotnet build -c Release
+
+# Linux/macOS (Bash)
+./setup.sh
 cd dbc-merger
 dotnet build -c Release
 ```
 
-### Output
-```
-bin/Release/net9.0/dbc-merger.exe
-```
+**For detailed setup instructions, see [SETUP.md](SETUP.md)**
 
 ## Usage
 

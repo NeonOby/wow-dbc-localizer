@@ -70,3 +70,7 @@ launch.json
 # OS files
 Thumbs.db
 .DS_Store
+
+# Dependencies (auto-downloaded by setup script)
+tools/
+dbcd-lib/
