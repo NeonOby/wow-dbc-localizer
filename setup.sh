@@ -64,6 +64,20 @@ ensure_directory() {
 # Setup Dependencies
 # ==========================================================================
 
+# DBCD Library - Clone from GitHub
+DBCD_PATH="$ROOT_DIR/dbcd-lib"
+ensure_git_repo \
+    "https://github.com/wowdev/DBCD.git" \
+    "$DBCD_PATH" \
+    "master" \
+    "DBCD Library (wowdev/DBCD)"
+
+echo ""
+
+# ==========================================================================
+# Verify Project Structure
+# ==========================================================================
+
 echo -e "${CYAN}=== Verifying Project Structure ===${NC}"
 echo ""
 

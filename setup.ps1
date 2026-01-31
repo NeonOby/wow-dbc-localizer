@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     This script sets up the required dependencies:
-    - dbcd-lib: DBCD library and WoW definitions
+    - dbcd-lib: DBCD library from wowdev/DBCD
     - tools: External tools like mpqcli
 
 .EXAMPLE
@@ -83,44 +83,43 @@ function Ensure-File {
 # ============================================================================
 
 try {
-    # DBCD Library - Clone from GitHub
-    # Note: Update this URL to point to your actual DBCD repository
-    # For now, we assume it's already in the workspace or needs to be cloned
-    $dbcdPath = Join-Path $rootPath "dbcd-lib"
+    Write-Host "`n=== Downloading Dependencies ===" -ForegroundColor Cyan
+    Write-Host ""
     
-    if (-not (Test-Path $dbcdPath)) {
-        Write-Host "Note: dbcd-lib not found." -ForegroundColor Yellow
-        Write-Host "Please ensure it exists at: $dbcdPath" -ForegroundColor Yellow
-        Write-Host "  This should contain: DBCD/, DBCD.IO/, definitions/" -ForegroundColor Gray
-        Write-Host ""
-    }
-    else {
-        Write-Host "✓ dbcd-lib found at: $dbcdPath" -ForegroundColor Green
-    }
+    # DBCD Library - Clone from GitHub
+    $dbcdPath = Join-Path $rootPath "dbcd-lib"
+    Ensure-GitRepo `
+        -RepoUrl "https://github.com/wowdev/DBCD.git" `
+        -LocalPath $dbcdPath `
+        -Branch "master" `
+        -Description "DBCD Library (wowdev/DBCD)"
+    
+    Write-Host ""
     
     # Tools directory
     $toolsPath = Join-Path $rootPath "tools"
     
     if (-not (Test-Path $toolsPath)) {
-        Write-Host "`nNote: tools/ directory not found." -ForegroundColor Yellow
+        Write-Host "Note: tools/ directory not found." -ForegroundColor Yellow
         Write-Host "Please ensure it exists at: $toolsPath" -ForegroundColor Yellow
         Write-Host "  This should contain: mpqcli.exe and other tools" -ForegroundColor Gray
         Write-Host ""
     }
     else {
-        Write-Host "`n✓ tools/ found at: $toolsPath" -ForegroundColor Green
+        Write-Host "✓ tools/ found at: $toolsPath" -ForegroundColor Green
         
         $mpqcli = Join-Path $toolsPath "mpqcli.exe"
         if (Test-Path $mpqcli) {
             Write-Host "  ✓ mpqcli.exe ready" -ForegroundColor Green
         }
+        Write-Host ""
     }
     
     # ========================================================================
     # Verify Structure
     # ========================================================================
     
-    Write-Host "`n=== Verifying Project Structure ===" -ForegroundColor Cyan
+    Write-Host "=== Verifying Project Structure ===" -ForegroundColor Cyan
     
     $requiredDirs = @(
         "dbc-merger",

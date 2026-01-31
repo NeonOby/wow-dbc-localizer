@@ -13,4 +13,41 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Automatically download dependencies before build -->
+  <Target Name="EnsureDependencies" BeforeTargets="BeforeResolveReferences">
+    <PropertyGroup>
+      <DbcdLibPath>$(MSBuildProjectDirectory)\..\dbcd-lib</DbcdLibPath>
+      <DbcdRepoUrl>https://github.com/wowdev/DBCD.git</DbcdRepoUrl>
+    </PropertyGroup>
+    
+    <Message Text="Checking DBCD library dependency..." Importance="high" />
+    
+    <!-- Check if dbcd-lib exists -->
+    <Message Text="Looking for: $(DbcdLibPath)" Importance="normal" />
+    <PropertyGroup>
+      <DbcdExists Condition="Exists('$(DbcdLibPath)')">true</DbcdExists>
+      <DbcdExists Condition="!Exists('$(DbcdLibPath)')">false</DbcdExists>
+    </PropertyGroup>
+    
+    <!-- Clone DBCD if it doesn't exist -->
+    <Exec Command="git clone --branch master --quiet $(DbcdRepoUrl) &quot;$(DbcdLibPath)&quot;" 
+          Condition="'$(DbcdExists)' == 'false'"
+          WorkingDirectory="$(MSBuildProjectDirectory)\.." />
+    
+    <!-- Restore NuGet packages for DBCD after cloning (use highest available framework compatible with our SDK) -->
+    <Exec Command="dotnet restore &quot;$(DbcdLibPath)\DBCD\DBCD.csproj&quot; /p:TargetFrameworks=net9.0" 
+          Condition="'$(DbcdExists)' == 'false'"
+          ContinueOnError="true" />
+    <Exec Command="dotnet restore &quot;$(DbcdLibPath)\DBCD.IO\DBCD.IO.csproj&quot; /p:TargetFrameworks=net9.0" 
+          Condition="'$(DbcdExists)' == 'false'"
+          ContinueOnError="true" />
+    
+    <Message Text="✓ DBCD library ready at: $(DbcdLibPath)" 
+             Importance="high" 
+             Condition="'$(DbcdExists)' == 'true'" />
+    <Message Text="✓ DBCD library cloned and restored to: $(DbcdLibPath)" 
+             Importance="high" 
+             Condition="'$(DbcdExists)' == 'false'" />
+  </Target>
+
 </Project>
