@@ -6,5 +6,5 @@
   "output": "output/",
   "auto": true,
   "verbose": false,
-  "report": "output/localize-report.json"
+  "report": "output/{patch}-report.json"
 }

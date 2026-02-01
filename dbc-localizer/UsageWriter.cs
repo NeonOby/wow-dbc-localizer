@@ -34,12 +34,13 @@ AUTOMATIC MODE (config.json):
     ""output"": ""output/localized.mpq"",
     ""auto"": true,
     ""verbose"": false,
-    ""report"": ""output/localize-report.json""
+    ""report"": ""output/{patch}-report.json""
   }
 
   If ""locale-mpqs"" is not provided, locale MPQs are auto-detected from ""locale-dir""
   (matching locale-<lang>.mpq and patch-<lang>-X.mpq), and languages are derived
   from the filenames.
+  The {patch} placeholder in ""report"" is replaced with the patch filename (no extension).
 
 LOCALIZE OPTIONS:
   --base <path>       Base DBC file (patch)

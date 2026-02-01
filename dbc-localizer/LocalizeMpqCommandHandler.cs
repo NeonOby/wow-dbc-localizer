@@ -91,26 +91,41 @@ namespace DbcLocalizer
 				{
 					var reportPath = patchArgs[reportIdx + 1];
 					var patchBaseName = Path.GetFileNameWithoutExtension(patchFile);
-					string? reportDir = null;
+					var patchName = Path.GetFileName(patchFile);
+					string resolvedPath;
 
-					if (reportPath.EndsWith("/") || reportPath.EndsWith("\\"))
+					if (reportPath.IndexOf("{patch}", StringComparison.OrdinalIgnoreCase) >= 0)
 					{
-						reportDir = reportPath;
-					}
-					else if (string.Equals(Path.GetExtension(reportPath), ".json", StringComparison.OrdinalIgnoreCase))
-					{
-						reportDir = Path.GetDirectoryName(reportPath);
+						resolvedPath = reportPath
+							.Replace("{patch}", patchBaseName, StringComparison.OrdinalIgnoreCase)
+							.Replace("{patchFile}", patchName, StringComparison.OrdinalIgnoreCase);
 					}
 					else
 					{
-						reportDir = reportPath;
+						string? reportDir = null;
+						if (reportPath.EndsWith("/") || reportPath.EndsWith("\\"))
+						{
+							reportDir = reportPath;
+						}
+						else if (string.Equals(Path.GetExtension(reportPath), ".json", StringComparison.OrdinalIgnoreCase))
+						{
+							reportDir = Path.GetDirectoryName(reportPath);
+						}
+						else
+						{
+							reportDir = reportPath;
+						}
+
+						if (string.IsNullOrWhiteSpace(reportDir))
+							reportDir = Directory.GetCurrentDirectory();
+
+						resolvedPath = Path.Combine(reportDir, $"{patchBaseName}-report.json");
 					}
 
-					if (string.IsNullOrWhiteSpace(reportDir))
-						reportDir = Directory.GetCurrentDirectory();
-
-					Directory.CreateDirectory(reportDir);
-					patchArgs[reportIdx + 1] = Path.Combine(reportDir, $"{patchBaseName}-report.json");
+					var resolvedDir = Path.GetDirectoryName(resolvedPath);
+					if (!string.IsNullOrWhiteSpace(resolvedDir))
+						Directory.CreateDirectory(resolvedDir);
+					patchArgs[reportIdx + 1] = resolvedPath;
 				}
 
 				// Run localization for this patch
