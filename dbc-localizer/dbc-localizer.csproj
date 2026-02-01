@@ -5,6 +5,10 @@
     <ProjectReference Include="..\dbcd-lib\DBCD.IO\DBCD.IO.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DBDefsLib" Version="1.0.1" />
+  </ItemGroup>
+
   <!-- Copy config.json to output directory -->
   <ItemGroup>
     <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
