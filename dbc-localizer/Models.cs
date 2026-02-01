@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
 	internal enum LogLevel
 	{
@@ -8,13 +8,13 @@ namespace DbcMerger
 		Verbose = 2
 	}
 
-	internal sealed class MergeStats
+	internal sealed class LocalizeStats
 	{
 		public int RowsMerged { get; set; }
 		public int FieldUpdates { get; set; }
 	}
 
-	internal sealed class MergeReport
+	internal sealed class LocalizeReport
 	{
 		public string TimestampUtc { get; set; } = string.Empty;
 		public string Build { get; set; } = string.Empty;
@@ -27,10 +27,10 @@ namespace DbcMerger
 		public int TotalTablesMerged { get; set; }
 		public int TotalRowsMerged { get; set; }
 		public int TotalFieldsUpdated { get; set; }
-		public List<LocaleMergeResult> PerLocale { get; set; } = new();
+		public List<LocaleLocalizeResult> PerLocale { get; set; } = new();
 	}
 
-	internal sealed class LocaleMergeResult
+	internal sealed class LocaleLocalizeResult
 	{
 		public string LocaleMpq { get; set; } = string.Empty;
 		public string Language { get; set; } = string.Empty;

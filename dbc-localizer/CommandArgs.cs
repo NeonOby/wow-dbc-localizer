@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
 	/// <summary>
-	/// Arguments for the "merge" command (single DBC files)
+	/// Arguments for the "localize" command (single DBC files)
 	/// </summary>
-	internal class MergeArgs
+	internal class LocalizeArgs
 	{
 		public string BasePath { get; set; } = string.Empty;
 		public string LocalePath { get; set; } = string.Empty;
@@ -20,9 +20,9 @@ namespace DbcMerger
 		                       !string.IsNullOrWhiteSpace(DefsPath) && 
 		                       !string.IsNullOrWhiteSpace(OutputPath);
 
-		public static MergeArgs Parse(string[] args, string defaultBuild = "3.3.5.12340")
+		public static LocalizeArgs Parse(string[] args, string defaultBuild = "3.3.5.12340")
 		{
-			return new MergeArgs
+			return new LocalizeArgs
 			{
 				BasePath = Helpers.GetArg(args, "--base") ?? string.Empty,
 				LocalePath = Helpers.GetArg(args, "--locale") ?? string.Empty,
@@ -35,9 +35,9 @@ namespace DbcMerger
 	}
 
 	/// <summary>
-	/// Arguments for the "merge-mpq" command
+	/// Arguments for the "localize-mpq" command
 	/// </summary>
-	internal class MergeMpqArgs
+	internal class LocalizeMpqArgs
 	{
 		public string PatchMpq { get; set; } = string.Empty;
 		public string LocaleMpq { get; set; } = string.Empty;
@@ -60,7 +60,7 @@ namespace DbcMerger
 		                       !string.IsNullOrWhiteSpace(DefsPath) && 
 		                       !string.IsNullOrWhiteSpace(OutputMpq);
 
-		public static MergeMpqArgs Parse(string[] args, string defaultBuild = "3.3.5.12340")
+		public static LocalizeMpqArgs Parse(string[] args, string defaultBuild = "3.3.5.12340")
 		{
 			var patchArg = Helpers.GetArg(args, "--patch");
 			var localeMpqArg = Helpers.GetArg(args, "--locale-mpq");
@@ -96,7 +96,7 @@ namespace DbcMerger
 			if (languages.Count == 0)
 				languages.Add(localeCode);
 
-			return new MergeMpqArgs
+			return new LocalizeMpqArgs
 			{
 				PatchMpq = patchArg ?? string.Empty,
 				LocaleMpq = localeMpqArg ?? string.Empty,

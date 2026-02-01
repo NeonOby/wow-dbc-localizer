@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
 	/// <summary>
 	/// Loads and parses configuration from config.json file
@@ -18,7 +18,7 @@ namespace DbcMerger
 				using var doc = JsonDocument.Parse(json);
 				var root = doc.RootElement;
 
-				var args = new List<string> { "merge-mpq" };
+				var args = new List<string> { "localize-mpq" };
 
 				// Required fields - check if patch is a directory (multi-file mode)
 				string? patchPath = null;

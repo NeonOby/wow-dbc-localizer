@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
 	internal static class Program
 	{
@@ -43,9 +43,10 @@ namespace DbcMerger
 				
 				return command switch
 				{
-					"merge" => MergeCommandHandler.Execute(cmdArgs),
-					"merge-mpq" => MergeMpqCommandHandler.Execute(cmdArgs),
+					"localize" => LocalizeCommandHandler.Execute(cmdArgs),
+					"localize-mpq" => LocalizeMpqCommandHandler.Execute(cmdArgs),
 					"scan-mpq" => ScanMpqCommandHandler.Execute(cmdArgs),
+
 					_ => UnknownCommand(command)
 				};
 			}

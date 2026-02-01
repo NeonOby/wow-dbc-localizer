@@ -4,18 +4,18 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
 	/// <summary>
-	/// Handles the "merge-mpq" command for merging DBCs from MPQ archives
+	/// Handles the "localize-mpq" command for localizing DBCs from MPQ archives
 	/// </summary>
-	internal static class MergeMpqCommandHandler
+	internal static class LocalizeMpqCommandHandler
 	{
 		public static int Execute(string[] args)
 		{
 			Logger.SetLogLevel(args);
 
-			var mpqArgs = MergeMpqArgs.Parse(args);
+			var mpqArgs = LocalizeMpqArgs.Parse(args);
 
 			// Check for multi-patch-dir mode
 			if (mpqArgs.IsMultiPatchDir)
@@ -95,8 +95,8 @@ namespace DbcMerger
 					}
 				}
 
-				// Run merge for this patch
-				var exitCode = ExecuteSinglePatch(MergeMpqArgs.Parse(patchArgs.ToArray()));
+				// Run localization for this patch
+				var exitCode = ExecuteSinglePatch(LocalizeMpqArgs.Parse(patchArgs.ToArray()));
 				if (exitCode != 0)
 					allExitCode = exitCode;
 			}
@@ -105,7 +105,7 @@ namespace DbcMerger
 			return allExitCode;
 		}
 
-		private static int ExecuteSinglePatch(MergeMpqArgs mpqArgs)
+		private static int ExecuteSinglePatch(LocalizeMpqArgs mpqArgs)
 		{
 			if (!mpqArgs.IsValid)
 				return Fail("Missing required arguments. Use --patch, --defs, --output.");
@@ -133,7 +133,7 @@ namespace DbcMerger
 				return Fail($"Number of languages ({mpqArgs.Languages.Count}) must match number of locale MPQs ({mpqArgs.LocaleMpqs.Count}).");
 			}
 
-			// Determine which DBCs to merge
+			// Determine which DBCs to localize
 			List<string> selectedDbcs;
 			if (mpqArgs.AutoAll)
 			{
@@ -155,11 +155,11 @@ namespace DbcMerger
 			}
 			else if (mpqArgs.Interactive)
 			{
-				selectedDbcs = SelectDbcsForMerge(mpqArgs.MpqCliPath, mpqArgs.PatchMpq, mpqArgs.LocaleMpqs, mpqArgs.DefsPath, mpqArgs.Build);
+				selectedDbcs = SelectDbcsForLocalize(mpqArgs.MpqCliPath, mpqArgs.PatchMpq, mpqArgs.LocaleMpqs, mpqArgs.DefsPath, mpqArgs.Build);
 				if (selectedDbcs.Count == 0)
 				{
 					Logger.Info("[*] No DBCs selected, exiting.");
-					WriteMergeReport(new MergeReport
+					WriteLocalizeReport(new LocalizeReport
 					{
 						TimestampUtc = DateTime.UtcNow.ToString("O"),
 						Build = mpqArgs.Build,
@@ -168,7 +168,7 @@ namespace DbcMerger
 						Languages = mpqArgs.Languages,
 						LocaleMpqs = mpqArgs.LocaleMpqs,
 						SelectedDbcs = new List<string>(),
-						PerLocale = new List<LocaleMergeResult>(),
+						PerLocale = new List<LocaleLocalizeResult>(),
 						TotalTablesMerged = 0,
 						TotalRowsMerged = 0,
 						TotalFieldsUpdated = 0,
@@ -183,7 +183,7 @@ namespace DbcMerger
 			}
 
 			// Prepare temp directories
-			var tempRoot = Path.Combine(Path.GetTempPath(), "dbc-merger", Guid.NewGuid().ToString("N"));
+			var tempRoot = Path.Combine(Path.GetTempPath(), "dbc-localizer", Guid.NewGuid().ToString("N"));
 			var patchExtractDir = Path.Combine(tempRoot, "patch");
 			var localeExtractDir = Path.Combine(tempRoot, "locale");
 			var mergedDir = Path.Combine(tempRoot, "merged");
@@ -208,8 +208,8 @@ namespace DbcMerger
 
 				if (selectedDbcs.Count == 0)
 				{
-					Logger.Info("[*] No valid DBCs to merge.");
-					WriteMergeReport(new MergeReport
+					Logger.Info("[*] No valid DBCs to localize.");
+					WriteLocalizeReport(new LocalizeReport
 					{
 						TimestampUtc = DateTime.UtcNow.ToString("O"),
 						Build = mpqArgs.Build,
@@ -218,7 +218,7 @@ namespace DbcMerger
 						Languages = mpqArgs.Languages,
 						LocaleMpqs = mpqArgs.LocaleMpqs,
 						SelectedDbcs = selectedDbcs,
-						PerLocale = new List<LocaleMergeResult>(),
+						PerLocale = new List<LocaleLocalizeResult>(),
 						TotalTablesMerged = 0,
 						TotalRowsMerged = 0,
 						TotalFieldsUpdated = 0,
@@ -227,8 +227,8 @@ namespace DbcMerger
 					return 0;
 				}
 
-				// Process merging
-				return PerformMerge(mpqArgs, selectedDbcs, patchExtractDir, localeExtractDir, mergedDir, warnings2);
+				// Process localization
+				return PerformLocalization(mpqArgs, selectedDbcs, patchExtractDir, localeExtractDir, mergedDir, warnings2);
 			}
 			finally
 			{
@@ -240,13 +240,13 @@ namespace DbcMerger
 			}
 		}
 
-		private static int PerformMerge(MergeMpqArgs mpqArgs, List<string> selectedDbcs, 
+		private static int PerformLocalization(LocalizeMpqArgs mpqArgs, List<string> selectedDbcs, 
 			string patchExtractDir, string localeExtractDir, string mergedDir, List<string> warnings)
 		{
 			int totalRowsMerged = 0;
 			int totalFieldsUpdated = 0;
 			int totalTablesMerged = 0;
-			var perLocaleResults = new List<LocaleMergeResult>();
+			var perLocaleResults = new List<LocaleLocalizeResult>();
 
 			for (int locIdx = 0; locIdx < mpqArgs.LocaleMpqs.Count; locIdx++)
 			{
@@ -270,9 +270,9 @@ namespace DbcMerger
 						// Extract from locale
 						var localeExtracted = MpqHelper.ExtractFile(mpqArgs.MpqCliPath, localeMpqPath, dbcRelPath, localeExtractDir);
 
-						// Merge
+						// Localize
 						var mergedPath = Path.Combine(mergedDir, Path.GetFileName(dbcRelPath));
-						var exitCode = MergeEngine.MergeDbc(
+						var exitCode = LocalizeEngine.LocalizeDbc(
 							patchExtracted,
 							localeExtracted,
 							mpqArgs.DefsPath,
@@ -311,8 +311,8 @@ namespace DbcMerger
 					}
 					catch (Exception ex)
 					{
-						Logger.Error($"Failed to merge {dbcRelPath}: {ex.Message}");
-						warnings.Add($"Failed to merge {dbcRelPath} for locale {lang}: {ex.Message}");
+						Logger.Error($"Failed to localize {dbcRelPath}: {ex.Message}");
+						warnings.Add($"Failed to localize {dbcRelPath} for locale {lang}: {ex.Message}");
 					}
 				}
 
@@ -320,7 +320,7 @@ namespace DbcMerger
 				totalFieldsUpdated += localeFieldsUpdated;
 				totalTablesMerged += localeTablesMerged;
 
-				perLocaleResults.Add(new LocaleMergeResult
+				perLocaleResults.Add(new LocaleLocalizeResult
 				{
 					LocaleMpq = localeMpqPath,
 					Language = lang,
@@ -335,7 +335,7 @@ namespace DbcMerger
 			Logger.Info($"[*] Output MPQ: {mpqArgs.OutputMpq}");
 
 			// Write report
-			var report = new MergeReport
+			var report = new LocalizeReport
 			{
 				TimestampUtc = DateTime.UtcNow.ToString("O"),
 				Build = mpqArgs.Build,
@@ -350,12 +350,12 @@ namespace DbcMerger
 				TotalFieldsUpdated = totalFieldsUpdated,
 				Warnings = warnings
 			};
-			WriteMergeReport(report, mpqArgs.ReportPath);
+			WriteLocalizeReport(report, mpqArgs.ReportPath);
 
 			return 0;
 		}
 
-		private static void WriteMergeReport(MergeReport report, string reportPath)
+		private static void WriteLocalizeReport(LocalizeReport report, string reportPath)
 		{
 			if (!string.IsNullOrWhiteSpace(reportPath))
 			{
@@ -365,7 +365,7 @@ namespace DbcMerger
 			}
 		}
 
-		private static List<string> SelectDbcsForMerge(
+		private static List<string> SelectDbcsForLocalize(
 			string mpqcliPath,
 			string patchMpq,
 			List<string> localeMpqs,
@@ -389,7 +389,7 @@ namespace DbcMerger
 			}
 
 			Logger.Info("");
-			Logger.Info("Select DBCs to merge (comma-separated numbers, or 'A' for all):");
+			Logger.Info("Select DBCs to localize (comma-separated numbers, or 'A' for all):");
 			var input = Console.ReadLine()?.Trim();
 
 			if (string.IsNullOrWhiteSpace(input))

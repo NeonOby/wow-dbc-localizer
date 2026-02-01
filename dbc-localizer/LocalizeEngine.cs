@@ -5,11 +5,11 @@ using System.Linq;
 using DBCD;
 using DBCD.Providers;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
-	internal static class MergeEngine
+	internal static class LocalizeEngine
 	{
-		public static int MergeDbc(
+		public static int LocalizeDbc(
 			string basePath,
 			string localePath,
 			string defsPath,
@@ -19,12 +19,12 @@ namespace DbcMerger
 			string localeSource,
 			string targetPath,
 			Action<string>? verboseLog,
-			out MergeStats stats)
+			out LocalizeStats stats)
 		{
-			stats = new MergeStats();
+			stats = new LocalizeStats();
 			var baseName = Path.GetFileNameWithoutExtension(basePath);
 
-			Logger.Info($"[*] Merge DBC: {baseName}");
+			Logger.Info($"[*] Localize DBC: {baseName}");
 			Logger.Info($"[*] Build: {build}");
 
 			var dbdProvider = new FilesystemDBDProvider(defsPath);
@@ -59,7 +59,7 @@ namespace DbcMerger
 				if (!localeStrings.TryGetValue(id, out var strings))
 					continue;
 
-				bool changed = MergeRow(
+				bool changed = LocalizeRow(
 					baseRow,
 					strings,
 					locFields,
@@ -77,7 +77,7 @@ namespace DbcMerger
 				fieldsUpdated += rowFieldUpdates;
 			}
 
-			Logger.Info($"[*] Rows merged: {mergedRows}");
+			Logger.Info($"[*] Rows localized: {mergedRows}");
 			Logger.Info($"[*] Fields updated: {fieldsUpdated}");
 
 			// Ensure output directory exists
@@ -86,7 +86,7 @@ namespace DbcMerger
 				Directory.CreateDirectory(outputDir);
 
 			baseStorage.Save(outputPath);
-			Logger.Info($"[*] Wrote merged DBC: {outputPath}");
+			Logger.Info($"[*] Wrote localized DBC: {outputPath}");
 
 			stats.RowsMerged = mergedRows;
 			stats.FieldUpdates = fieldsUpdated;
@@ -94,7 +94,7 @@ namespace DbcMerger
 			return 0;
 		}
 
-		private static bool MergeRow(
+		private static bool LocalizeRow(
 			DBCDRow baseRow,
 			List<string> localeValues,
 			List<string> locFields,

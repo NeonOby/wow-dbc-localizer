@@ -1,24 +1,23 @@
 # DBC-Localizer - Quickstart
 
-Merge German texts from WoW 3.3.5 MPQ files using C# CLI tool.
+Localize German texts from WoW 3.3.5 MPQ files using the C# CLI tool.
 
 ## Requirements
-- .NET 9.0 Runtime or SDK
-- mpqcli.exe (already in `tools/`)
+- .NET 10.0 SDK
 
 ## Setup
 1. Open Visual Studio or VS Code
-2. Open `dbc-merger.sln` in the project root
-3. Build: `dotnet build dbc-merger.sln -c Release`
+2. Open `dbc-localizer.sln` in the project root
+3. Build: `dotnet build dbc-localizer.sln -c Release`
 
-## Run Merge
+## Run Localization
 ```bash
-cd dbc-merger
-dotnet bin/Release/net9.0/dbc-merger.dll merge-mpq ^
+cd dbc-localizer
+dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq ^
   --patch "path/to/patch-B.mpq" ^
   --locale-mpq "path/to/locale-deDE.MPQ" ^
   --defs "path/to/definitions" ^
-  --output "output/Patch-B-merged.mpq" ^
+  --output "output/Patch-B-localized.mpq" ^
   --dbc "DBFilesClient\Spell.dbc" ^
   --lang deDE ^
   --mpqcli "path/to/mpqcli.exe"
@@ -26,28 +25,28 @@ dotnet bin/Release/net9.0/dbc-merger.dll merge-mpq ^
 
 Or use defaults from project root:
 ```bash
-cd dbc-merger
-dotnet bin/Release/net9.0/dbc-merger.dll merge-mpq
+cd dbc-localizer
+dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq
 ```
 
 This will:
 1. ✓ Extract DBCs from both MPQs (patch-B.mpq, locale-deDE.MPQ)
 2. ✓ Parse DBD definitions for field mapping
-3. ✓ Merge 20,050+ German texts into Spell.dbc
-4. ✓ Create new MPQ: `output/Patch-B-merged.mpq`
+3. ✓ Localize 20,050+ German texts into Spell.dbc
+4. ✓ Create new MPQ: `output/Patch-B-localized.mpq`
 
 ## Input Files
 Place these in project root:
 - `patch-B.mpq` - Base patch file
 - `locale-deDE.MPQ` - German locale data
-- `test-dbcd/definitions/` - WoW 3.3.5 DBD definitions (already included)
+- `dbcd-lib/definitions/` - WoW 3.3.5 DBD definitions (auto-downloaded)
 
 ## Commands
-- `merge-mpq` - Full pipeline: extract → merge → repack MPQ
-- `merge` - Direct DBC merge (two DBC files)
+- `localize-mpq` - Full pipeline: extract → localize → repack MPQ
+- `localize` - Direct DBC localization (two DBC files)
 
 ## Technology Stack
-- **C#** / **.NET 9.0**: Core implementation
+- **C#** / **.NET 10.0**: Core implementation
 - **DBCD**: DBC file parsing & writing
 - **mpqcli**: MPQ file manipulation
 

@@ -13,7 +13,7 @@ Thank you for your interest in contributing to DBC-Localizer!
 ```bash
 git clone https://github.com/NeonOby/dbc-localizer.git
 cd dbc-localizer
-cd dbc-merger
+cd dbc-localizer
 dotnet build
 ```
 

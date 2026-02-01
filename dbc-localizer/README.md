@@ -1,4 +1,4 @@
-# DBC Merger - Automatisches Lokalisierungstool
+# DBC Localizer - Automatisches Lokalisierungstool
 
 Ein C#-basiertes Tool zum Zusammenführen von lokalisierten WoW-DBC-Dateien aus mehreren MPQ-Archiven.
 
@@ -16,7 +16,7 @@ Ein C#-basiertes Tool zum Zusammenführen von lokalisierten WoW-DBC-Dateien aus 
 ## Installation
 
 Das Tool benötigt:
-- .NET 9.0 Runtime
+- .NET 10.0 SDK
 - `mpqcli.exe` (Pfad wird automatisch erkannt)
 - DBCD-Bibliotheken und DBD-Definitionen
 
@@ -36,11 +36,11 @@ Bearbeite `config.json` und passe die Pfade an:
     "../input/locale/patch-deDE-3.MPQ"
   ],
   "langs": ["deDE", "deDE", "deDE", "deDE"],
-  "defs": "../test-dbcd/definitions/definitions",
+  "defs": "../dbcd-lib/definitions/definitions",
   "output": "../output/",
   "auto": true,
   "verbose": false,
-  "report": "../output/merge-report.json"
+  "report": "../output/localize-report.json"
 }
 ```
 
@@ -51,11 +51,11 @@ Die Output-Datei wird automatisch den gleichen Namen wie die Input-Patch-Datei b
 ### Schritt 2: Ausführen
 
 ```bash
-# Aus dem dbc-merger-Verzeichnis:
-dotnet bin/Release/net9.0/dbc-merger.dll
+# Aus dem dbc-localizer-Verzeichnis:
+dotnet bin/Release/net9.0/dbc-localizer.dll
 
 # Oder mit Verbose-Logging:
-dotnet bin/Release/net9.0/dbc-merger.dll
+dotnet bin/Release/net9.0/dbc-localizer.dll
 # (Und "verbose": true in config.json setzen)
 ```
 
@@ -65,42 +65,42 @@ Das Tool wird automatisch alle Lokalisierungsdateien zusammenführen!
 
 ### Scan durchführen
 ```bash
-dotnet bin/Release/net9.0/dbc-merger.dll scan-mpq \
+dotnet bin/Release/net9.0/dbc-localizer.dll scan-mpq \
   --patch "../input/patch/patch-B.mpq" \
   --locale-mpq "../input/locale/locale-deDE.MPQ" \
-  --defs "../test-dbcd/definitions/definitions"
+  --defs "../dbcd-lib/definitions/definitions"
 ```
 
-### Merge mit Auto-Detektion
+### Lokalisieren mit Auto-Detektion
 ```bash
-dotnet bin/Release/net9.0/dbc-merger.dll merge-mpq \
+dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq \
   --patch "../input/patch/patch-B.mpq" \
   --locale-mpq "../input/locale/locale-deDE.MPQ" \
-  --defs "../test-dbcd/definitions/definitions" \
-  --output "../output/merged.mpq" \
+  --defs "../dbcd-lib/definitions/definitions" \
+  --output "../output/localized.mpq" \
   --auto \
   --report "../output/report.json"
 ```
 
 ### Interaktive DBC-Auswahl
 ```bash
-dotnet bin/Release/net9.0/dbc-merger.dll merge-mpq \
+dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq \
   --patch "../input/patch/patch-B.mpq" \
   --locale-mpq "../input/locale/locale-deDE.MPQ" \
-  --defs "../test-dbcd/definitions/definitions" \
+  --defs "../dbcd-lib/definitions/definitions" \
   --output "../output/" \
   --select
 ```
 
-## Multi-Locale Merge (alle Patch-Updates)
+## Multi-Locale Lokalisierung (alle Patch-Updates)
 
 ```bash
-dotnet bin/Release/net9.0/dbc-merger.dll merge-mpq \
+dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq \
   --patch "../input/patch/patch-B.mpq" \
   --locale-mpqs "locale-deDE.MPQ;patch-deDE.MPQ;patch-deDE-2.MPQ;patch-deDE-3.MPQ" \
   --langs "deDE;deDE;deDE;deDE" \
-  --defs "../test-dbcd/definitions/definitions" \
-  --output "../output/merged-all.mpq" \
+  --defs "../dbcd-lib/definitions/definitions" \
+  --output "../output/localized-all.mpq" \
   --auto \
   --report "../output/report.json"
 ```
@@ -109,30 +109,32 @@ dotnet bin/Release/net9.0/dbc-merger.dll merge-mpq \
 
 ### Info-Modus (Standard)
 ```bash
-dotnet bin/Release/net9.0/dbc-merger.dll merge-mpq ...
+dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq ...
 ```
 Zeigt Zusammenfassungen:
 ```
-[*] Rows merged: 20050
+[*] Rows localized: 20050
 [*] Fields updated: 20050
 ```
 
 ### Verbose-Modus
 ```bash
-dotnet bin/Release/net9.0/dbc-merger.dll merge-mpq ... --verbose
+dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq ... --verbose
 ```
 Zeigt jede einzelne Feldänderung:
 ```
 copied deDE from locale-deDE.MPQ to patch-B.mpq Spell.dbc ID 1 field Name_lang
 copied deDE from locale-deDE.MPQ to patch-B.mpq Spell.dbc ID 1 field Description_lang
 ...
-```## Output-Struktur
+```
+
+## Output-Struktur
 
 Nach der Ausführung:
 ```
 output/
-├── patch-B.mpq             # Fusionierte MPQ-Datei (automatisch mit Input-Namen benannt)
-└── merge-report.json       # Statistiken und Metadaten
+├── patch-B.mpq             # Lokalisierte MPQ-Datei (automatisch mit Input-Namen benannt)
+└── localize-report.json    # Statistiken und Metadaten
 ```
 
 ### Report-Beispiel
@@ -158,7 +160,7 @@ output/
 
 - **Mehrfach-Updates**: Wenn mehrere Locale-MPQs die gleiche DBC enthalten, werden Updates nacheinander angewendet (letzte gewinnt)
 - **Validierung**: Fehlende DBCs werden als Warnung ausgegeben, aber nicht als Fehler behandelt
-- **Temp-Dateien**: Werden automatisch nach dem Merge gelöscht (mit `--keep-temp` beibehalten)
+- **Temp-Dateien**: Werden automatisch nach der Lokalisierung gelöscht (mit `--keep-temp` beibehalten)
 - **Build-Spezifisch**: Der Build-String (z.B. 3.3.5.12340) bestimmt die DBC-Struktur
 
 ## Architektur
@@ -171,7 +173,7 @@ Das Tool ist modular aufgebaut:
 - **Helpers.cs** - Hilfsfunktionen
 - **MpqHelper.cs** - MPQ-Operationen
 - **DbcScanner.cs** - DBC-Analyse
-- **MergeEngine.cs** - Merge-Logik
+- **MergeEngine.cs** - Lokalisierungs-Logik
 
 ## Lizenz
 

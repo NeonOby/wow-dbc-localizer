@@ -6,7 +6,7 @@ This document describes how to set up DBC-Localizer for development or use.
 
 ### All Platforms
 ```bash
-cd dbc-merger
+cd dbc-localizer
 dotnet build -c Release
 ```
 
@@ -61,7 +61,7 @@ Ensure these directories exist:
 
 ```
 dbc-localizer/
-├── dbc-merger/              (C# project source)
+├── dbc-localizer/           (C# project source)
 ├── dbcd-lib/                (DBCD library - must exist)
 │   ├── DBCD/
 │   ├── DBCD.IO/
@@ -69,17 +69,17 @@ dbc-localizer/
 ├── tools/                   (External tools - auto-downloaded)
 │   └── mpqcli.exe          (Windows) or mpqcli (Linux)
 ├── input/                   (Your input MPQ files)
-├── output/                  (Generated merged MPQ files)
+├── output/                  (Generated localized MPQ files)
 └── README.md                (Documentation)
 ```
 
 ### Step 3: Build the Project
 ```bash
-cd dbc-merger
+cd dbc-localizer
 dotnet build -c Release
 ```
 
-**Output:** `bin/Release/net9.0/dbc-merger.exe`
+**Output:** `bin/Release/net9.0/dbc-localizer.exe`
 
 ### Step 4: Run Tests
 ```bash
@@ -92,7 +92,7 @@ dotnet run -- scan-mpq --patch <path> --locale-mpq <path> --defs ../dbcd-lib/def
 ### "dbcd-lib not found"
 The build will download DBCD automatically. If it fails:
 1. Ensure Git is installed
-2. Run `dotnet build dbc-merger -c Release` again
+2. Run `dotnet build dbc-localizer -c Release` again
 3. Or manually clone https://github.com/wowdev/DBCD into `dbcd-lib`
 
 ### ".NET SDK not found"

@@ -1,6 +1,6 @@
 using System;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
 	/// <summary>
 	/// Writes usage and help information to console
@@ -10,21 +10,21 @@ namespace DbcMerger
 		public static void PrintUsage()
 		{
 			Console.WriteLine(@"
-DBC Merger - Merge localized strings into WoW DBC files
+DBC Localizer - Localize WoW DBC files with locale data
 
 USAGE:
-  dbc-merger                    (run with config.json - automatic mode)
-  dbc-merger merge --base <path> --locale <path> --defs <path> --output <path> [options]
-  dbc-merger merge-mpq --patch <mpq> --locale-mpq <mpq> --defs <path> --output <mpq> [options]
-  dbc-merger scan-mpq --patch <mpq> --locale-mpq <mpq> --defs <path> [options]
+  dbc-localizer                 (run with config.json - automatic mode)
+  dbc-localizer localize --base <path> --locale <path> --defs <path> --output <path> [options]
+  dbc-localizer localize-mpq --patch <mpq> --locale-mpq <mpq> --defs <path> --output <mpq> [options]
+  dbc-localizer scan-mpq --patch <mpq> --locale-mpq <mpq> --defs <path> [options]
 
 COMMANDS:
-  merge         Merge a single DBC file
-  merge-mpq     Merge DBC(s) from MPQ archives
+  localize      Localize a single DBC file
+  localize-mpq  Localize DBC(s) from MPQ archives
   scan-mpq      List all localizable DBCs in MPQ archives
 
 AUTOMATIC MODE (config.json):
-  If you run dbc-merger without arguments, it will look for config.json in the current directory.
+  If you run dbc-localizer without arguments, it will look for config.json in the current directory.
   Create a config.json file with the following structure:
   {
     ""patch"": ""input/patch/patch-B.mpq"",
@@ -35,14 +35,14 @@ AUTOMATIC MODE (config.json):
       ""input/locale/patch-deDE-3.MPQ""
     ],
     ""langs"": [""deDE"", ""deDE"", ""deDE"", ""deDE""],
-    ""defs"": ""test-dbcd/definitions/definitions"",
-    ""output"": ""output/merged.mpq"",
+        ""defs"": ""dbcd-lib/definitions/definitions"",
+        ""output"": ""output/localized.mpq"",
     ""auto"": true,
     ""verbose"": false,
-    ""report"": ""output/merge-report.json""
+        ""report"": ""output/localize-report.json""
   }
 
-MERGE OPTIONS:
+LOCALIZE OPTIONS:
   --base <path>       Base DBC file (patch)
   --locale <path>     Locale DBC file
   --defs <path>       DBD definitions directory
@@ -50,7 +50,7 @@ MERGE OPTIONS:
   --build <build>     WoW build (default: 3.3.5.12340)
   --lang <code>       Locale code (default: deDE)
 
-MERGE-MPQ OPTIONS:
+LOCALIZE-MPQ OPTIONS:
   --patch <mpq>         Patch MPQ file
   --locale-mpq <mpq>    Single locale MPQ file
   --locale-mpqs <list>  Multiple locale MPQs (semicolon-separated)
@@ -60,7 +60,7 @@ MERGE-MPQ OPTIONS:
   --dbc <path>          Single DBC relative path (e.g., DBFilesClient\Spell.dbc)
   --dbc-list <list>     Semicolon-separated DBC paths (e.g., ""A.dbc;B.dbc"")
   --select              Interactive DBC selection mode
-  --auto                Automatically merge all localizable DBCs
+  --auto                Automatically localize all localizable DBCs
   --build <build>       WoW build (default: 3.3.5.12340)
   --lang <code>         Locale code for single locale (default: deDE)
   --mpqcli <path>       Path to mpqcli.exe
@@ -79,25 +79,25 @@ SCAN-MPQ OPTIONS:
 
 EXAMPLES:
   # Run with config.json (automatic)
-  dbc-merger
+  dbc-localizer
 
   # Scan for localizable DBCs
-  dbc-merger scan-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions
+  dbc-localizer scan-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions
 
   # Interactive selection
-  dbc-merger merge-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions --output output.mpq --select
+  dbc-localizer localize-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions --output output.mpq --select
 
-  # Merge all localizable DBCs automatically
-  dbc-merger merge-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions --output output.mpq --auto
+  # Localize all localizable DBCs automatically
+  dbc-localizer localize-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions --output output.mpq --auto
 
-  # Merge specific DBC
-  dbc-merger merge-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions --output output.mpq --dbc DBFilesClient\Spell.dbc
+  # Localize specific DBC
+  dbc-localizer localize-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions --output output.mpq --dbc DBFilesClient\Spell.dbc
 
-  # Merge multiple locales
-  dbc-merger merge-mpq --patch patch.mpq --locale-mpqs ""locale-deDE.MPQ;locale-frFR.MPQ"" --langs ""deDE;frFR"" --defs definitions --output output.mpq --auto
+  # Localize multiple locales
+  dbc-localizer localize-mpq --patch patch.mpq --locale-mpqs ""locale-deDE.MPQ;locale-frFR.MPQ"" --langs ""deDE;frFR"" --defs definitions --output output.mpq --auto
 
   # Verbose logging
-  dbc-merger merge-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions --output output.mpq --auto --verbose
+  dbc-localizer localize-mpq --patch patch.mpq --locale-mpq locale-deDE.MPQ --defs definitions --output output.mpq --auto --verbose
 ");
 		}
 	}

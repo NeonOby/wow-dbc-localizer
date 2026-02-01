@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using DBCD.Providers;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
 	internal static class DbcScanner
 	{

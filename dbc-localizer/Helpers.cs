@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
 	internal static class Helpers
 	{

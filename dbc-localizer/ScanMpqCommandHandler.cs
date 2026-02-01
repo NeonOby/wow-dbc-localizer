@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace DbcMerger
+namespace DbcLocalizer
 {
 	/// <summary>
 	/// Handles the "scan-mpq" command for listing localizable DBCs

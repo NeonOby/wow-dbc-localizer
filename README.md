@@ -1,14 +1,16 @@
 # DBC-Localizer
 
-**Automated German text merger for World of Warcraft 3.3.5 MPQ files**
+![DBC-Localizer Icon](icons/wow-style-icon--welt-als-hintegrund--zahnrad-umran.png)
 
-A C# tool that extracts German locale data from `locale-deDE.MPQ` and merges it into `patch-B.mpq` using WDBX XML definitions. Creates fully-localized MPQ files ready for use in WoW 3.3.5.
+**Automated German text localization for World of Warcraft 3.3.5 MPQ files**
+
+A C# tool that extracts German locale data from `locale-deDE.MPQ` and localizes `patch-B.mpq` using WDBX XML definitions. Creates fully-localized MPQ files ready for use in WoW 3.3.5.
 
 ## Features
 - ✓ **Fast C# implementation** - High-performance DBC processing
-- ✓ **Batch processing** - Merge multiple patches/locales at once
+- ✓ **Batch processing** - Localize multiple patches/locales at once
 - ✓ **Multiple modes** - Auto-detect, interactive selection, or explicit DBC lists
-- ✓ **JSON reports** - Detailed merge statistics and warnings
+- ✓ **JSON reports** - Detailed localization statistics and warnings
 - ✓ **Config file support** - Fully automated via `config.json`
 - ✓ **WDBX definitions** - WoW 3.3.5 DBC field mappings
 
@@ -16,24 +18,24 @@ A C# tool that extracts German locale data from `locale-deDE.MPQ` and merges it 
 
 ```
 DBC-Localizer/
-├── dbc-merger/                      # C# Console Application (Main Tool)
+├── dbc-localizer/                   # C# Console Application (Main Tool)
 │   ├── Program.cs                  # CLI Entry point
 │   ├── CommandArgs.cs              # Argument parsing classes
 │   ├── ConfigLoader.cs             # Config.json loading
 │   ├── UsageWriter.cs              # Help text
-│   ├── MergeCommandHandler.cs       # Single DBC merge
-│   ├── MergeMpqCommandHandler.cs    # MPQ merge with batch support
+│   ├── LocalizeCommandHandler.cs    # Single DBC localization
+│   ├── LocalizeMpqCommandHandler.cs # MPQ localization with batch support
 │   ├── ScanMpqCommandHandler.cs     # DBC scanning
-│   ├── MergeEngine.cs              # Core merge logic
+│   ├── LocalizeEngine.cs            # Core localization logic
 │   ├── MpqHelper.cs                # MPQ I/O operations
 │   ├── DbcScanner.cs               # Localizable DBC detection
 │   ├── Logger.cs                   # Logging
 │   ├── Models.cs                   # Data structures
 │   ├── Helpers.cs                  # Utility functions
-│   ├── dbc-merger.csproj           # Project file
+│   ├── dbc-localizer.csproj        # Project file
 │   └── config.json                 # Configuration example
 │
-├── dbc-merger.sln                   # Visual Studio Solution
+├── dbc-localizer.sln                # Visual Studio Solution
 │
 ├── dbcd-lib/                        # DBCD Library & Definitions
 │   ├── DBCD/                       # DBC file reader/writer
@@ -45,7 +47,7 @@ DBC-Localizer/
 │   └── patch/                      # Patch MPQ files
 │
 ├── output/                          # Generated output
-│   └── Patch-*.mpq                 # Merged MPQ files
+│   └── Patch-*.mpq                 # Localized MPQ files
 │
 ├── tools/                           # External tools
 │   └── mpqcli.exe                  # MPQ manipulation CLI
@@ -65,7 +67,7 @@ DBC-Localizer/
 
 ### Quick Setup
 ```bash
-cd dbc-merger
+cd dbc-localizer
 dotnet build -c Release
 ```
 
@@ -81,40 +83,40 @@ The build will automatically download:
 ```bash
 # 1. Configure input files in config.json
 # 2. Run without arguments
-dbc-merger
+dbc-localizer
 
-# Output: Merged MPQ file + JSON report
+# Output: Localized MPQ file + JSON report
 ```
 
 ### Command Line - Single Locale
 ```bash
-dbc-merger merge-mpq \
+dbc-localizer localize-mpq \
   --patch input/patch/patch-B.mpq \
   --locale-mpq input/locale/locale-deDE.MPQ \
   --defs dbcd-lib/definitions/definitions \
-  --output output/Patch-B-merged.mpq \
+  --output output/Patch-B-localized.mpq \
   --auto \
-  --report output/merge-report.json
+  --report output/localize-report.json
 ```
 
 ### Command Line - Multiple Locales
 ```bash
-dbc-merger merge-mpq \
+dbc-localizer localize-mpq \
   --patch input/patch/patch-B.mpq \
   --locale-mpqs "input/locale/locale-deDE.MPQ;input/locale/patch-deDE.MPQ" \
   --langs "deDE;deDE" \
   --defs dbcd-lib/definitions/definitions \
-  --output output/Patch-B-merged.mpq \
+  --output output/Patch-B-localized.mpq \
   --auto
 ```
 
 ### Interactive Selection
 ```bash
-dbc-merger merge-mpq \
+dbc-localizer localize-mpq \
   --patch input/patch/patch-B.mpq \
   --locale-mpq input/locale/locale-deDE.MPQ \
   --defs dbcd-lib/definitions/definitions \
-  --output output/Patch-B-merged.mpq \
+  --output output/Patch-B-localized.mpq \
   --select
 ```
 
@@ -129,29 +131,29 @@ dbc-merger merge-mpq \
   ],
   "langs": ["deDE", "deDE"],
   "defs": "dbcd-lib/definitions/definitions",
-  "output": "output/Patch-B-merged.mpq",
+  "output": "output/Patch-B-localized.mpq",
   "auto": true,
   "verbose": false,
-  "report": "output/merge-report.json"
+  "report": "output/localize-report.json"
 }
 ```
 
 ## Commands
 
-### merge
-Merge a single DBC file between base and locale versions.
+### localize
+Localize a single DBC file between base and locale versions.
 
 ```bash
-dbc-merger merge \
+dbc-localizer localize \
   --base <path> --locale <path> \
   --defs <path> --output <path>
 ```
 
-### merge-mpq
-Merge DBC files from MPQ archives (main command).
+### localize-mpq
+Localize DBC files from MPQ archives (main command).
 
 ```bash
-dbc-merger merge-mpq \
+dbc-localizer localize-mpq \
   --patch <mpq> --locale-mpq <mpq> \
   --defs <path> --output <mpq>
 ```
@@ -160,7 +162,7 @@ dbc-merger merge-mpq \
 List all localizable DBCs in MPQ archives.
 
 ```bash
-dbc-merger scan-mpq \
+dbc-localizer scan-mpq \
   --patch <mpq> --locale-mpq <mpq> \
   --defs <path>
 ```
@@ -169,8 +171,8 @@ dbc-merger scan-mpq \
 
 1. **Scan Phase**: Identify localizable DBCs (containing locstring fields)
 2. **Extract Phase**: Extract DBC files from both patch and locale MPQs
-3. **Merge Phase**: Combine German texts with base patch data using WDBX definitions
-4. **Update Phase**: Remove old DBCs and add merged versions to output MPQ
+3. **Localization Phase**: Combine German texts with base patch data using WDBX definitions
+4. **Update Phase**: Remove old DBCs and add localized versions to output MPQ
 5. **Report Phase**: Generate JSON report with statistics
 
 ## Architecture
@@ -178,9 +180,9 @@ dbc-merger scan-mpq \
 ### Key Classes
 
 - **Program.cs** - CLI entry point and command routing
-- **CommandArgs.cs** - Type-safe argument parsing (MergeArgs, MergeMpqArgs, ScanMpqArgs)
-- **MergeMpqCommandHandler.cs** - Main merge orchestration with multi-patch support
-- **MergeEngine.cs** - Core DBC merge logic
+- **CommandArgs.cs** - Type-safe argument parsing (LocalizeArgs, LocalizeMpqArgs, ScanMpqArgs)
+- **LocalizeMpqCommandHandler.cs** - Main localization orchestration with multi-patch support
+- **LocalizeEngine.cs** - Core DBC localization logic
 - **DbcScanner.cs** - Localization candidate detection
 - **MpqHelper.cs** - MPQ file operations via mpqcli
 - **ConfigLoader.cs** - config.json parsing
@@ -224,7 +226,7 @@ NeonOby - 2026
 - **Record Size**: 936 bytes (Spell.dbc)
 - **German Texts**: 22,979 entries
 - **Output Size**: ~29.7 MB
-- **Merge Logic**: Field-by-field comparison with preservation of base data
+- **Localization Logic**: Field-by-field comparison with preservation of base data
 
 ## Requirements
 - Python 3.12+

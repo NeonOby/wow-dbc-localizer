@@ -12,9 +12,9 @@
     "deDE",
     "deDE"
   ],
-  "defs": "../test-dbcd/definitions/definitions",
+  "defs": "../dbcd-lib/definitions/definitions",
   "output": "../output/",
   "auto": true,
   "verbose": false,
-  "report": "../output/"
+  "report": "../output/localize-report.json"
 }

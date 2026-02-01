@@ -41,7 +41,7 @@ output/
    │  │  ├─ Versuche Übersetzung aus locale-XYZ.MPQ laden
    │  │  │  └─ TEMP: Extrahiere → temp/locale/{locale}/{dbc_name}.dbc
    │  │  └─ WENN nicht gefunden: nutze enUS fallback
-   │  ├─ Merge Daten mit DBCD (lokal übernimmt englisch nicht, fallback only)
+  │  ├─ Lokalisieren mit DBCD (lokal übernimmt englisch nicht, fallback only)
    │  ├─ TEMP: Schreibe merged DBC → temp/merged/{dbc_name}.dbc
    │  └─ 🧹 CLEANUP: Lösche temp/extract/{dbc_name}.dbc + temp/locale/{locale}/{dbc_name}.dbc
    │
@@ -54,7 +54,7 @@ output/
 
 SPEICHEROPTIMIERUNG:
 - Nicht alle DBCs aus MPQ extrahieren, nur die mit Lang-Feldern
-- Nach jedem DBC-Merge die Temp-Dateien löschen (nicht am Ende)
+- Nach jeder DBC-Lokalisierung die Temp-Dateien löschen (nicht am Ende)
 - Damit: Speicher nur für AKTUELLES DBC + AKTUELLES Locale DBC
 ```
 
@@ -76,7 +76,7 @@ scan_dbc(dbc_path) -> {
 }
 ```
 
-### 3. **DBCMerger** (DBCD-basiert)
+### 3. **DBCLocalizer** (DBCD-basiert)
 ```python
 merge_dbc(
     base_dbc,           # DBC aus patch-B.mpq
@@ -122,13 +122,13 @@ User hat 3 locale MPQs:
 - locale-ruRU.MPQ → DBCs mit ruRU Übersetzungen
 
 Für jedes DBC:
-- Merge deDE Felder von deDE-MPQ
-- Merge frFR Felder von frFR-MPQ
-- Merge ruRU Felder von ruRU-MPQ
+- Lokalisieren deDE Felder von deDE-MPQ
+- Lokalisieren frFR Felder von frFR-MPQ
+- Lokalisieren ruRU Felder von ruRU-MPQ
 - Alles andere: fallback zu enUS
 ```
 
-## 📊 Beispiel: Spell.dbc Merge
+## 📊 Beispiel: Spell.dbc Lokalisierung
 
 ```
 patch-B/Spell.dbc Record #1:
@@ -139,7 +139,7 @@ locale-deDE/Spell.dbc Record #1:
   ID: 1
   Name_lang: [enUS:"Fireball", deDE:"Feuerball", frFR:"", ...]
 
-MERGE RESULT:
+LOCALIZATION RESULT:
   ID: 1
   Name_lang: [enUS:"Fireball", deDE:"Feuerball", frFR:"", ...]
 ```
@@ -171,7 +171,7 @@ MERGE RESULT:
    - `dbcd-cli write <json> --defs <path> --output <dbc>` → Binary DBC
 
 2. **Python Komponenten** implementieren:
-   - Locale Detector, MPQ Scanner, DBC Merger
+  - Locale Detector, MPQ Scanner, DBC Localizer
    - Main Orchestrator mit Cleanup während Process
 
 3. Tests mit patch-B.mpq + locale-deDE.MPQ

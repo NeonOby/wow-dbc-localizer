@@ -5,12 +5,21 @@
     <ProjectReference Include="..\dbcd-lib\DBCD.IO\DBCD.IO.csproj" />
   </ItemGroup>
 
+  <!-- Copy config.json to output directory -->
+  <ItemGroup>
+    <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <AssemblyName>dbc-localizer</AssemblyName>
     <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>dbc_merger</RootNamespace>
+    <RootNamespace>DbcLocalizer</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <OutputPath>$(MSBuildProjectDirectory)\..\bin\Release\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ApplicationIcon>dbc-localizer.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!-- Automatically download mpqcli tool before build (Windows) -->
@@ -88,4 +97,33 @@
              Condition="'$(DbcdExists)' == 'false'" />
   </Target>
 
+  <!-- Copy resources to bin directory -->
+  <Target Name="CopyResourcesToBin" AfterTargets="Build">
+    <PropertyGroup>
+      <BinDir>$(MSBuildProjectDirectory)\..\bin\Release</BinDir>
+      <LibDir>$(BinDir)\lib</LibDir>
+    </PropertyGroup>
+    
+    <Message Text="Organizing build artifacts..." Importance="high" />
+    
+    <!-- Create lib directory -->
+    <Exec Command="powershell -NoProfile -Command &quot;New-Item -ItemType Directory -Path '$(LibDir)' -Force | Out-Null&quot;" />
+    
+    <!-- Move DBCD DLLs and XML files to lib folder -->
+    <Exec Command="powershell -NoProfile -Command &quot;Get-ChildItem -Path '$(BinDir)' -Filter 'DBCD*.dll' -File | ForEach-Object { Move-Item -Path $_.FullName -Destination '$(LibDir)' -Force }; Get-ChildItem -Path '$(BinDir)' -Filter 'DBDefsLib.dll' -File | ForEach-Object { Move-Item -Path $_.FullName -Destination '$(LibDir)' -Force }; Get-ChildItem -Path '$(BinDir)' -Filter '*.xml' -File | ForEach-Object { Move-Item -Path $_.FullName -Destination '$(LibDir)' -Force }&quot;" ContinueOnError="true" />
+    
+    <!-- Copy input folder -->
+    <Exec Command="powershell -NoProfile -Command &quot;if (Test-Path '$(MSBuildProjectDirectory)\..\input') { Copy-Item -Path '$(MSBuildProjectDirectory)\..\input' -Destination '$(BinDir)\input' -Recurse -Force } else { New-Item -ItemType Directory -Path '$(BinDir)\input' -Force | Out-Null }&quot;" />
+    
+    <!-- Copy output folder -->
+    <Exec Command="powershell -NoProfile -Command &quot;if (!(Test-Path '$(BinDir)\output')) { New-Item -ItemType Directory -Path '$(BinDir)\output' -Force | Out-Null }&quot;" />
+    
+    <!-- Copy tools folder -->
+    <Exec Command="powershell -NoProfile -Command &quot;if (Test-Path '$(MSBuildProjectDirectory)\..\tools') { Copy-Item -Path '$(MSBuildProjectDirectory)\..\tools' -Destination '$(BinDir)\tools' -Recurse -Force } else { New-Item -ItemType Directory -Path '$(BinDir)\tools' -Force | Out-Null }&quot;" />
+    
+    <!-- Copy dbcd-lib definitions for runtime use (if they exist) -->
+    <Exec Command="powershell -NoProfile -Command &quot;if (Test-Path '$(MSBuildProjectDirectory)\..\dbcd-lib\definitions') { Copy-Item -Path '$(MSBuildProjectDirectory)\..\dbcd-lib\definitions' -Destination '$(BinDir)\dbcd-lib\definitions' -Recurse -Force }&quot;" ContinueOnError="true" />
+    
+    <Message Text="Build artifacts organized in: $(BinDir)" Importance="high" />
+  </Target>
 </Project>
