@@ -112,14 +112,14 @@
     <!-- Move DBCD DLLs and XML files to lib folder -->
     <Exec Command="powershell -NoProfile -Command &quot;Get-ChildItem -Path '$(BinDir)' -Filter 'DBCD*.dll' -File | ForEach-Object { Move-Item -Path $_.FullName -Destination '$(LibDir)' -Force }; Get-ChildItem -Path '$(BinDir)' -Filter 'DBDefsLib.dll' -File | ForEach-Object { Move-Item -Path $_.FullName -Destination '$(LibDir)' -Force }; Get-ChildItem -Path '$(BinDir)' -Filter '*.xml' -File | ForEach-Object { Move-Item -Path $_.FullName -Destination '$(LibDir)' -Force }&quot;" ContinueOnError="true" />
     
-    <!-- Copy input folder -->
-    <Exec Command="powershell -NoProfile -Command &quot;if (Test-Path '$(MSBuildProjectDirectory)\..\input') { Copy-Item -Path '$(MSBuildProjectDirectory)\..\input' -Destination '$(BinDir)\input' -Recurse -Force } else { New-Item -ItemType Directory -Path '$(BinDir)\input' -Force | Out-Null }&quot;" />
+    <!-- Ensure input folder structure in bin/Release -->
+    <Exec Command="powershell -NoProfile -Command &quot;if (!(Test-Path '$(BinDir)\input')) { New-Item -ItemType Directory -Path '$(BinDir)\input' -Force | Out-Null }; if (!(Test-Path '$(BinDir)\input\locale')) { New-Item -ItemType Directory -Path '$(BinDir)\input\locale' -Force | Out-Null }; if (!(Test-Path '$(BinDir)\input\patch')) { New-Item -ItemType Directory -Path '$(BinDir)\input\patch' -Force | Out-Null }; if (Test-Path '$(MSBuildProjectDirectory)\..\input') { Copy-Item -Path '$(MSBuildProjectDirectory)\..\input\*' -Destination '$(BinDir)\input' -Recurse -Force }&quot;" />
     
     <!-- Copy output folder -->
     <Exec Command="powershell -NoProfile -Command &quot;if (!(Test-Path '$(BinDir)\output')) { New-Item -ItemType Directory -Path '$(BinDir)\output' -Force | Out-Null }&quot;" />
     
-    <!-- Copy tools folder -->
-    <Exec Command="powershell -NoProfile -Command &quot;if (Test-Path '$(MSBuildProjectDirectory)\..\tools') { Copy-Item -Path '$(MSBuildProjectDirectory)\..\tools' -Destination '$(BinDir)\tools' -Recurse -Force } else { New-Item -ItemType Directory -Path '$(BinDir)\tools' -Force | Out-Null }&quot;" />
+    <!-- Copy tools folder contents -->
+    <Exec Command="powershell -NoProfile -Command &quot;if (Test-Path '$(MSBuildProjectDirectory)\..\tools') { if (!(Test-Path '$(BinDir)\tools')) { New-Item -ItemType Directory -Path '$(BinDir)\tools' -Force | Out-Null }; Copy-Item -Path '$(MSBuildProjectDirectory)\..\tools\*' -Destination '$(BinDir)\tools' -Recurse -Force } else { New-Item -ItemType Directory -Path '$(BinDir)\tools' -Force | Out-Null }&quot;" />
     
     <!-- Copy dbcd-lib definitions for runtime use (if they exist) -->
     <Exec Command="powershell -NoProfile -Command &quot;if (Test-Path '$(MSBuildProjectDirectory)\..\dbcd-lib\definitions') { Copy-Item -Path '$(MSBuildProjectDirectory)\..\dbcd-lib\definitions' -Destination '$(BinDir)\dbcd-lib\definitions' -Recurse -Force }&quot;" ContinueOnError="true" />
