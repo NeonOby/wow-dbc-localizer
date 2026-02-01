@@ -12,9 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Clone DBCD Library
-        run: |
-          git clone https://github.com/Warpten/DBCD.git dbcd-lib
+      - name: Checkout DBCD Library
+        uses: actions/checkout@v4
+        with:
+          repository: Warpten/DBCD
+          path: dbcd-lib
+          fetch-depth: 1
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -30,23 +33,62 @@ jobs:
           $version = "${{ github.ref }}" -replace 'refs/tags/', ''
           $zipName = "dbc-localizer-$version-win-x64.zip"
           
+          Write-Host "Starting release packaging..."
+          Write-Host "Version: $version"
+          Write-Host "ZIP Name: $zipName"
+          Write-Host "Current directory: $(Get-Location)"
+          
+          # Check if bin/Release exists
+          if (!(Test-Path "bin/Release")) {
+            Write-Host "ERROR: bin/Release directory not found!"
+            exit 1
+          }
+          
+          # List contents of bin/Release
+          Write-Host "Contents of bin/Release:"
+          Get-ChildItem -Path "bin/Release" -Recurse | ForEach-Object { Write-Host "  $_" }
+          
           # Create temporary directory for packaging
           $stagingDir = "release-staging"
           if (Test-Path $stagingDir) { Remove-Item -Recurse -Force $stagingDir }
           New-Item -ItemType Directory -Path $stagingDir | Out-Null
+          Write-Host "Created staging directory: $stagingDir"
           
           # Copy release artifacts
-          Copy-Item -Path "bin/Release/*" -Destination "$stagingDir/" -Recurse -Force
+          Write-Host "Copying artifacts from bin/Release to staging..."
+          Copy-Item -Path "bin/Release/*" -Destination "$stagingDir/" -Recurse -Force -ErrorAction Stop
+          
+          # List staging contents
+          Write-Host "Staging directory contents:"
+          Get-ChildItem -Path $stagingDir -Recurse | ForEach-Object { Write-Host "  $_" }
           
           # Create ZIP file
-          Compress-Archive -Path "$stagingDir/*" -DestinationPath $zipName -CompressionLevel Optimal -Force
+          Write-Host "Creating ZIP file: $zipName"
+          $compressParams = @{
+            Path = "$stagingDir/*"
+            DestinationPath = $zipName
+            CompressionLevel = "Optimal"
+            Force = $true
+            ErrorAction = "Stop"
+          }
+          Compress-Archive @compressParams
+          
+          # Verify ZIP was created
+          if (Test-Path $zipName) {
+            $zipSize = (Get-Item $zipName).Length
+            Write-Host "ZIP created successfully: $zipName ($zipSize bytes)"
+          } else {
+            Write-Host "ERROR: ZIP file was not created!"
+            exit 1
+          }
           
           # Cleanup staging directory
           Remove-Item -Recurse -Force $stagingDir
+          Write-Host "Cleaned up staging directory"
           
-          # Save version for next step
-          "$version" | Out-File -FilePath "version.txt" -NoNewline
-          Write-Host "Release package created: $zipName"
+          # List files in current directory
+          Write-Host "Files in current directory:"
+          Get-ChildItem -Path "." -File | ForEach-Object { Write-Host "  $_" }
 
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v4
