@@ -15,7 +15,7 @@ jobs:
       - name: Checkout DBCD Library
         uses: actions/checkout@v4
         with:
-          repository: Warpten/DBCD
+          repository: wowdev/DBCD
           path: dbcd-lib
           fetch-depth: 1
 
