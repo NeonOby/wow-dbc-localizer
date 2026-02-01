@@ -1,10 +1,10 @@
 # DBC-Localizer
 
-![DBC-Localizer Icon](icons/wow-style-icon--welt-als-hintegrund--zahnrad-umran.png)
+![DBC-Localizer Icon](dbc-localizer/icons/wow-style-icon--welt-als-hintegrund--zahnrad-umran.png)
 
-**Automated German text localization for World of Warcraft 3.3.5 MPQ files**
+**Automated German text localization for World of Warcraft MPQ files (build configurable)**
 
-A C# tool that extracts German locale data from `locale-deDE.MPQ` and localizes `patch-B.mpq` using WDBX XML definitions. Creates fully-localized MPQ files ready for use in WoW 3.3.5.
+A C# tool that extracts German locale data from `locale-*.MPQ` and localizes patch MPQs using build-specific WDBX definitions. Build/version is configurable via CLI or `config.json`.
 
 ## Features
 - ✓ **Fast C# implementation** - High-performance DBC processing
@@ -12,7 +12,7 @@ A C# tool that extracts German locale data from `locale-deDE.MPQ` and localizes 
 - ✓ **Multiple modes** - Auto-detect, interactive selection, or explicit DBC lists
 - ✓ **JSON reports** - Detailed localization statistics and warnings
 - ✓ **Config file support** - Fully automated via `config.json`
-- ✓ **WDBX definitions** - WoW 3.3.5 DBC field mappings
+- ✓ **WDBX definitions** - Build-specific DBC field mappings (configurable)
 
 ## Project Structure
 
@@ -37,32 +37,27 @@ DBC-Localizer/
 │
 ├── dbc-localizer.sln                # Visual Studio Solution
 │
-├── dbcd-lib/                        # DBCD Library & Definitions
+├── dbcd-lib/                        # DBCD Library (auto-downloaded at build)
 │   ├── DBCD/                       # DBC file reader/writer
-│   ├── DBCD.IO/                    # Low-level I/O operations
-│   └── definitions/                # WoW 3.3.5 DBD definitions
+│   └── DBCD.IO/                    # Low-level I/O operations
 │
-├── input/                           # Input MPQ files
-│   ├── locale/                     # Locale MPQ files
-│   └── patch/                      # Patch MPQ files
-│
-├── output/                          # Generated output
-│   └── Patch-*.mpq                 # Localized MPQ files
+├── bin/Release/                     # Release output
+│   ├── input/                      # Input MPQ files
+│   │   ├── locale/                 # Locale MPQ files
+│   │   └── patch/                  # Patch MPQ files
+│   └── output/                     # Generated output
 │
 ├── tools/                           # External tools
 │   └── mpqcli.exe                  # MPQ manipulation CLI
 │
-└── DeleteMe/                        # Legacy & cleanup folder
-    ├── python/                     # Legacy Python implementation
-    ├── pywowlib/                   # Original Python library
-    ├── temp/                       # Old test scripts
-    └── venv/                       # Legacy virtual environment
+└── tools/                           # External tools
+  └── mpqcli.exe                  # MPQ manipulation CLI
 ```
 
 ## Installation
 
 ### Prerequisites
-- **.NET 10.0 SDK**
+- **.NET 9.0 SDK**
 - **Input MPQ files** in appropriate folders
 
 ### Quick Setup
@@ -93,10 +88,10 @@ dbc-localizer
 dbc-localizer localize-mpq \
   --patch input/patch/patch-B.mpq \
   --locale-mpq input/locale/locale-deDE.MPQ \
-  --defs dbcd-lib/definitions/definitions \
-  --output output/Patch-B-localized.mpq \
+  --defs defs/WoWDBDefs/definitions \
+  --output output/ \
   --auto \
-  --report output/localize-report.json
+  --report output/{patch}-report.json
 ```
 
 ### Command Line - Multiple Locales
@@ -105,8 +100,8 @@ dbc-localizer localize-mpq \
   --patch input/patch/patch-B.mpq \
   --locale-mpqs "input/locale/locale-deDE.MPQ;input/locale/patch-deDE.MPQ" \
   --langs "deDE;deDE" \
-  --defs dbcd-lib/definitions/definitions \
-  --output output/Patch-B-localized.mpq \
+  --defs defs/WoWDBDefs/definitions \
+  --output output/ \
   --auto
 ```
 
@@ -115,8 +110,8 @@ dbc-localizer localize-mpq \
 dbc-localizer localize-mpq \
   --patch input/patch/patch-B.mpq \
   --locale-mpq input/locale/locale-deDE.MPQ \
-  --defs dbcd-lib/definitions/definitions \
-  --output output/Patch-B-localized.mpq \
+  --defs defs/WoWDBDefs/definitions \
+  --output output/ \
   --select
 ```
 
@@ -125,16 +120,13 @@ dbc-localizer localize-mpq \
 ```json
 {
   "patch": "input/patch/patch-B.mpq",
-  "locale-mpqs": [
-    "input/locale/locale-deDE.MPQ",
-    "input/locale/patch-deDE.MPQ"
-  ],
-  "langs": ["deDE", "deDE"],
-  "defs": "dbcd-lib/definitions/definitions",
-  "output": "output/Patch-B-localized.mpq",
+  "locale-dir": "input/locale/",
+  "defs": "defs/WoWDBDefs/definitions",
+  "build": "3.3.5.12340",
+  "output": "output/",
   "auto": true,
   "verbose": false,
-  "report": "output/localize-report.json"
+  "report": "output/{patch}-report.json"
 }
 ```
 
@@ -218,35 +210,8 @@ NeonOby - 2026
 
 ## Technical Stack
 
-- **Language**: C# 13 (.NET 9.0)
+- **Language**: C# (.NET 9.0)
 - **Architecture**: Single-responsibility command handlers
-- **Code Style**: Clean, maintainable, well-documented
 - **Build**: dotnet CLI / Visual Studio 2024+
-- **DBC Format**: WotLK (3.3.5) with 107 fields
-- **Record Size**: 936 bytes (Spell.dbc)
-- **German Texts**: 22,979 entries
-- **Output Size**: ~29.7 MB
-- **Localization Logic**: Field-by-field comparison with preservation of base data
-
-## Requirements
-- Python 3.12+
-- pywowlib (included, requires Cython build)
-- mpqcli v0.9.6 (included in `tools/`)
-- Input: patch-B.mpq, locale-deDE.MPQ
-
-## Tools
-- **pywowlib**: MPQ archive reading, DBC parsing, StormLib bindings
-- **mpqcli**: CLI tool for adding/removing files in MPQ archives
-- **WDBX**: XML-based DBC field definitions
-
-## License
-See [pywowlib/LICENSE](pywowlib/LICENSE)
-
-## Notes
-- All paths are relative (PROJECT_ROOT-based)
-- Old development files in `temp/` directory
-- Test scripts preserved but unused
-- Configuration in scripts (no config files needed)
-
----
-For development details, see previous test files in `temp/` directory.
+- **MPQ Tooling**: mpqcli
+- **Definitions**: WoWDBDefs (auto-downloaded at runtime)

@@ -16,7 +16,7 @@ Ein C#-basiertes Tool zum Zusammenführen von lokalisierten WoW-DBC-Dateien aus 
 ## Installation
 
 Das Tool benötigt:
-- .NET 10.0 SDK
+- .NET 9.0 SDK
 - `mpqcli.exe` (Pfad wird automatisch erkannt)
 - DBCD-Bibliotheken und DBD-Definitionen
 
@@ -28,34 +28,29 @@ Bearbeite `config.json` und passe die Pfade an:
 
 ```json
 {
-  "patch": "../input/patch/patch-B.mpq",
-  "locale-mpqs": [
-    "../input/locale/locale-deDE.MPQ",
-    "../input/locale/patch-deDE.MPQ",
-    "../input/locale/patch-deDE-2.MPQ",
-    "../input/locale/patch-deDE-3.MPQ"
-  ],
-  "langs": ["deDE", "deDE", "deDE", "deDE"],
-  "defs": "../dbcd-lib/definitions/definitions",
-  "output": "../output/",
+  "patch": "input/patch/patch-B.mpq",
+  "locale-dir": "input/locale/",
+  "defs": "defs/WoWDBDefs/definitions",
+  "build": "3.3.5.12340",
+  "output": "output/",
   "auto": true,
   "verbose": false,
-  "report": "../output/localize-report.json"
+  "report": "output/{patch}-report.json"
 }
 ```
 
 **Hinweis:** Der `output`-Pfad kann ein Verzeichnis sein (mit `/` oder `\` am Ende).
 Die Output-Datei wird automatisch den gleichen Namen wie die Input-Patch-Datei bekommen:
-- Input: `patch-B.mpq` → Output: `../output/patch-B.mpq`
+- Input: `patch-B.mpq` → Output: `output/patch-B.mpq`
 
 ### Schritt 2: Ausführen
 
 ```bash
-# Aus dem dbc-localizer-Verzeichnis:
-dotnet bin/Release/net9.0/dbc-localizer.dll
+# Aus dem bin/Release-Verzeichnis:
+dbc-localizer.exe
 
 # Oder mit Verbose-Logging:
-dotnet bin/Release/net9.0/dbc-localizer.dll
+dbc-localizer.exe
 # (Und "verbose": true in config.json setzen)
 ```
 
@@ -65,51 +60,51 @@ Das Tool wird automatisch alle Lokalisierungsdateien zusammenführen!
 
 ### Scan durchführen
 ```bash
-dotnet bin/Release/net9.0/dbc-localizer.dll scan-mpq \
-  --patch "../input/patch/patch-B.mpq" \
-  --locale-mpq "../input/locale/locale-deDE.MPQ" \
-  --defs "../dbcd-lib/definitions/definitions"
+dbc-localizer.exe scan-mpq \
+  --patch "input/patch/patch-B.mpq" \
+  --locale-mpq "input/locale/locale-deDE.MPQ" \
+  --defs "defs/WoWDBDefs/definitions"
 ```
 
 ### Lokalisieren mit Auto-Detektion
 ```bash
-dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq \
-  --patch "../input/patch/patch-B.mpq" \
-  --locale-mpq "../input/locale/locale-deDE.MPQ" \
-  --defs "../dbcd-lib/definitions/definitions" \
-  --output "../output/localized.mpq" \
+dbc-localizer.exe localize-mpq \
+  --patch "input/patch/patch-B.mpq" \
+  --locale-mpq "input/locale/locale-deDE.MPQ" \
+  --defs "defs/WoWDBDefs/definitions" \
+  --output "output/" \
   --auto \
-  --report "../output/report.json"
+  --report "output/{patch}-report.json"
 ```
 
 ### Interaktive DBC-Auswahl
 ```bash
-dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq \
-  --patch "../input/patch/patch-B.mpq" \
-  --locale-mpq "../input/locale/locale-deDE.MPQ" \
-  --defs "../dbcd-lib/definitions/definitions" \
-  --output "../output/" \
+dbc-localizer.exe localize-mpq \
+  --patch "input/patch/patch-B.mpq" \
+  --locale-mpq "input/locale/locale-deDE.MPQ" \
+  --defs "defs/WoWDBDefs/definitions" \
+  --output "output/" \
   --select
 ```
 
 ## Multi-Locale Lokalisierung (alle Patch-Updates)
 
 ```bash
-dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq \
-  --patch "../input/patch/patch-B.mpq" \
-  --locale-mpqs "locale-deDE.MPQ;patch-deDE.MPQ;patch-deDE-2.MPQ;patch-deDE-3.MPQ" \
+dbc-localizer.exe localize-mpq \
+  --patch "input/patch/patch-B.mpq" \
+  --locale-mpqs "input/locale/locale-deDE.MPQ;input/locale/patch-deDE.MPQ;input/locale/patch-deDE-2.MPQ;input/locale/patch-deDE-3.MPQ" \
   --langs "deDE;deDE;deDE;deDE" \
-  --defs "../dbcd-lib/definitions/definitions" \
-  --output "../output/localized-all.mpq" \
+  --defs "defs/WoWDBDefs/definitions" \
+  --output "output/" \
   --auto \
-  --report "../output/report.json"
+  --report "output/{patch}-report.json"
 ```
 
 ## Logging-Stufen
 
 ### Info-Modus (Standard)
 ```bash
-dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq ...
+dbc-localizer.exe localize-mpq ...
 ```
 Zeigt Zusammenfassungen:
 ```
@@ -119,7 +114,7 @@ Zeigt Zusammenfassungen:
 
 ### Verbose-Modus
 ```bash
-dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq ... --verbose
+dbc-localizer.exe localize-mpq ... --verbose
 ```
 Zeigt jede einzelne Feldänderung:
 ```
@@ -134,7 +129,7 @@ Nach der Ausführung:
 ```
 output/
 ├── patch-B.mpq             # Lokalisierte MPQ-Datei (automatisch mit Input-Namen benannt)
-└── localize-report.json    # Statistiken und Metadaten
+└── patch-B-report.json     # Statistiken und Metadaten
 ```
 
 ### Report-Beispiel
