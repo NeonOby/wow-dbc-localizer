@@ -10,8 +10,12 @@ namespace DbcLocalizer
 		public static string GetDefaultMpqCliPath()
 		{
 			var baseDir = AppContext.BaseDirectory;
-			var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "tools", "mpqcli.exe"));
-			return candidate;
+			var localTools = Path.Combine(baseDir, "tools", "mpqcli.exe");
+			if (File.Exists(localTools))
+				return localTools;
+
+			var repoTools = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "tools", "mpqcli.exe"));
+			return repoTools;
 		}
 
 		public static string ExtractFile(string mpqcliPath, string mpqPath, string filePath, string outputDir)
