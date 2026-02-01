@@ -29,7 +29,8 @@ AUTOMATIC MODE (config.json):
   {
     ""patch"": ""input/patch/patch-B.mpq"",
     ""locale-dir"": ""input/locale/"",
-        ""defs"": ""dbcd-lib/definitions/definitions"",
+      ""defs"": ""defs/WoWDBDefs/definitions"",
+      ""build"": ""3.3.5.12340"",
         ""output"": ""output/localized.mpq"",
     ""auto"": true,
     ""verbose"": false,

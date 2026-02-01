@@ -12,6 +12,8 @@ namespace DbcLocalizer
 		public static int Execute(string[] args)
 		{
 			var scanArgs = ScanMpqArgs.Parse(args);
+			if (string.IsNullOrWhiteSpace(scanArgs.DefsPath))
+				scanArgs.DefsPath = DefsManager.GetDefaultDefsPath();
 
 			if (!scanArgs.IsValid)
 				return Fail("Missing required arguments. Use --patch, --defs.");
@@ -28,7 +30,7 @@ namespace DbcLocalizer
 					return Fail($"Locale MPQ not found: {mpq}");
 			}
 
-			if (!Directory.Exists(scanArgs.DefsPath))
+			if (!DefsManager.EnsureDefinitions(ref scanArgs.DefsPath, scanArgs.Build))
 				return Fail($"Definitions path not found: {scanArgs.DefsPath}");
 
 			if (!File.Exists(scanArgs.MpqCliPath))

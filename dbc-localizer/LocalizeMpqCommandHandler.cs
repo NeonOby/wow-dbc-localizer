@@ -16,6 +16,8 @@ namespace DbcLocalizer
 			Logger.SetLogLevel(args);
 
 			var mpqArgs = LocalizeMpqArgs.Parse(args);
+			if (string.IsNullOrWhiteSpace(mpqArgs.DefsPath))
+				mpqArgs.DefsPath = DefsManager.GetDefaultDefsPath();
 
 			// Check for multi-patch-dir mode
 			if (mpqArgs.IsMultiPatchDir)
@@ -122,7 +124,7 @@ namespace DbcLocalizer
 					return Fail($"Locale MPQ not found: {mpq}");
 			}
 
-			if (!Directory.Exists(mpqArgs.DefsPath))
+			if (!DefsManager.EnsureDefinitions(ref mpqArgs.DefsPath, mpqArgs.Build))
 				return Fail($"Definitions path not found: {mpqArgs.DefsPath}");
 
 			if (!File.Exists(mpqArgs.MpqCliPath))

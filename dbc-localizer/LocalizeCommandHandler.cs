@@ -13,6 +13,9 @@ namespace DbcLocalizer
 			Logger.SetLogLevel(args);
 
 			var localizeArgs = LocalizeArgs.Parse(args);
+			localizeArgs.DefsPath = DefsManager.GetDefaultDefsPath();
+			if (!string.IsNullOrWhiteSpace(Helpers.GetArg(args, "--defs")))
+				localizeArgs.DefsPath = Helpers.GetArg(args, "--defs")!;
 
 			if (!localizeArgs.IsValid)
 				return Fail("Missing required arguments. Use --base, --locale, --defs, --output.");
@@ -21,7 +24,7 @@ namespace DbcLocalizer
 				return Fail($"Base DBC not found: {localizeArgs.BasePath}");
 			if (!File.Exists(localizeArgs.LocalePath))
 				return Fail($"Locale DBC not found: {localizeArgs.LocalePath}");
-			if (!Directory.Exists(localizeArgs.DefsPath))
+			if (!DefsManager.EnsureDefinitions(ref localizeArgs.DefsPath, localizeArgs.Build))
 				return Fail($"Definitions path not found: {localizeArgs.DefsPath}");
 
 			var baseName = Path.GetFileNameWithoutExtension(localizeArgs.BasePath);
