@@ -91,6 +91,14 @@ namespace DbcLocalizer
 				{
 					if (!string.IsNullOrWhiteSpace(tempRoot) && Directory.Exists(tempRoot))
 						Directory.Delete(tempRoot, true);
+
+					var wowdefsRoot = Path.Combine(Path.GetTempPath(), "dbc-localizer", "wowdbdefs");
+					if (Directory.Exists(wowdefsRoot) && !Directory.EnumerateFileSystemEntries(wowdefsRoot).Any())
+						Directory.Delete(wowdefsRoot, true);
+
+					var dbcRoot = Path.Combine(Path.GetTempPath(), "dbc-localizer");
+					if (Directory.Exists(dbcRoot) && !Directory.EnumerateFileSystemEntries(dbcRoot).Any())
+						Directory.Delete(dbcRoot, true);
 				}
 				catch
 				{
