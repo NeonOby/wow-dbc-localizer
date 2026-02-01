@@ -1,10 +1,10 @@
 {
-  "patch": "../input/patch/",
-  "locale-dir": "../input/locale/",
+  "patch": "input/patch/",
+  "locale-dir": "input/locale/",
   "defs": "defs/WoWDBDefs/definitions",
   "build": "3.3.5.12340",
-  "output": "../output/",
+  "output": "output/",
   "auto": true,
   "verbose": false,
-  "report": "../output/localize-report.json"
+  "report": "output/localize-report.json"
 }
