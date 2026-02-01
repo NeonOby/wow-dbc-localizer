@@ -1,0 +1,66 @@
+﻿							// Get localized string
+							// NOTE: In locale-specific DBC, the localized text is always at index 0
+							// because the DBC was loaded with a specific locale (e.g., DBCD.Locale.DeDE)
+							string locStr = string.Empty;
+							try
+							{
+								var locValue = localeRow[field];
+								if (locValue is string[] locArray && locArray.Length > 0)
+								{
+									locStr = locArray[0] ?? string.Empty; // Read from index 0 of locale DBC
+								
+								// Debug: Show what's actually in the locale DBC for first few IDs
+								if (id <= 15 && field == "Name_lang")
+								{
+									Logger.Verbose($"[LOCALE DBC] ID={id}, Field={field}, LocaleCode={localeCode}, Value='{locStr}'");
+								}
+							}
+							else if (locValue is string str)
+							{
+								locStr = str ?? string.Empty;
+							}
+						}
+						catch
+						{
+							continue;
+						}
+
+						// Apply to patch row if not empty
+						if (!string.IsNullOrWhiteSpace(locStr))
+						{
+							// Capture values for sample changes
+							string valueEnUS = arr[fallbackIndex] ?? string.Empty;
+							string valueLocaleBefore = arr[localeIndex] ?? string.Empty;
+									// Only track if value actually changed from what was in locale column
+									if (list.Count < 10 && !string.Equals(valueLocaleBefore, locStr, StringComparison.Ordinal))
+									{
+										list.Add(new SampleChange
+										{
+											ID = id,
+											Field = field,
+											Value_enUS = valueEnUS,
+											Value_Locale_Before = valueLocaleBefore,
+											Value_Locale_After = locStr
+										});
+									}
+								}
+							}
+							else if (!string.IsNullOrWhiteSpace(arr[fallbackIndex]))
+							{
+								// Apply fallback (don't count as update)
+								arr[localeIndex] = arr[fallbackIndex];
+							}
+						}
+
+						patchRow[field] = arr;
+					}
+					catch (Exception ex)
+					{
+						Logger.Verbose($"[!] Error processing field {field} for ID {id}: {ex.Message}");
+					}
+				}
+
+				rowsProcessed++;
+			}
+
+			// Save output

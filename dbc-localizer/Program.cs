@@ -52,7 +52,7 @@ namespace DbcLocalizer
 				
 				exitCode = command switch
 				{
-					"localize" => LocalizeCommandHandler.Execute(cmdArgs),
+
 					"localize-mpq" => LocalizeMpqCommandHandler.Execute(cmdArgs),
 					"scan-mpq" => ScanMpqCommandHandler.Execute(cmdArgs),
 					"verify-dbc" => VerifyDbcCommandHandler.Execute(cmdArgs),

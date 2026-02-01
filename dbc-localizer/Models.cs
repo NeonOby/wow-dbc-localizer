@@ -19,8 +19,9 @@ namespace DbcLocalizer
 	{
 		public int ID { get; set; }
 		public string Field { get; set; } = string.Empty;
-		public string OldValue { get; set; } = string.Empty;
-		public string NewValue { get; set; } = string.Empty;
+		public string Value_enUS { get; set; } = string.Empty;
+		public string Value_Locale_Before { get; set; } = string.Empty;
+		public string Value_Locale_After { get; set; } = string.Empty;
 	}
 
 	internal sealed class VerificationTestCase
