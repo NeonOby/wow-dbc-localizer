@@ -19,7 +19,6 @@
     <Nullable>enable</Nullable>
     <OutputPath>$(MSBuildProjectDirectory)\..\bin\Release\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <ApplicationIcon>dbc-localizer.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!-- Automatically download mpqcli tool before build (Windows) -->
