@@ -12,6 +12,28 @@ namespace DbcLocalizer
 		private static Dictionary<string, List<SampleChange>>? _sampleChanges;
 		private static bool _trackChanges;
 
+		/// <summary>
+		/// Convert locale code string to DBCD Locale enum
+		/// </summary>
+		private static DBCD.Locale GetDbcdLocale(string localeCode)
+		{
+			return localeCode.ToLowerInvariant() switch
+			{
+				"enus" or "engb" => DBCD.Locale.EnUS,
+				"kokr" => DBCD.Locale.KoKR,
+				"frfr" => DBCD.Locale.FrFR,
+				"dede" => DBCD.Locale.DeDE,
+				"encn" or "zhcn" => DBCD.Locale.EnCN,
+				"entw" or "zhtw" => DBCD.Locale.EnTW,
+				"eses" => DBCD.Locale.EsES,
+				"esmx" => DBCD.Locale.EsMX,
+				"ruru" => DBCD.Locale.RuRU,
+				"ptpt" or "ptbr" => DBCD.Locale.PtPT,
+				"itit" => DBCD.Locale.ItIT,
+				_ => DBCD.Locale.None
+			};
+		}
+
 		public static int LocalizeDbc(
 			string basePath,
 			string localePath,
@@ -55,7 +77,25 @@ namespace DbcLocalizer
 			Logger.Info($"[*] Locstring fields: {locFields.Count}");
 
 			var localeIndex = Helpers.GetLocaleIndex(localeCode, build);
-			var localeStrings = ReadLocaleStrings(localePath, versionDef.Value, dbdDefinition, localeIndex);
+
+			// Load locale DBC with DBCD using correct locale enum
+			var localeDbccLocale = GetDbcdLocale(localeCode);
+			var localeProvider = new FilesystemDBCProvider(Path.GetDirectoryName(localePath) ?? ".");
+			var localeDbcd = new DBCD.DBCD(localeProvider, dbdProvider);
+			
+			object? localeStorage = null;
+			if (localeDbccLocale != DBCD.Locale.None)
+			{
+				try
+				{
+					localeStorage = localeDbcd.Load(baseName, build, localeDbccLocale);
+				}
+				catch (Exception ex)
+				{
+					Logger.Verbose($"[!] Failed to load locale storage for {localeCode}: {ex.Message}");
+					localeStorage = null;
+				}
+			}
 
 			int mergedRows = 0;
 			int fieldsUpdated = 0;
@@ -77,7 +117,23 @@ namespace DbcLocalizer
 					continue;
 				}
 
-				if (!localeStrings.TryGetValue(id, out var strings))
+				// Try to get locale row with matching ID
+				DBCDRow? localeRow = null;
+				if (localeStorage is not null)
+				{
+					try
+					{
+						dynamic storage = localeStorage;
+						localeRow = storage[id];
+					}
+					catch
+					{
+						// ID not found in locale storage
+						localeRow = null;
+					}
+				}
+
+				if (localeRow is null)
 				{
 					// Apply fallback only if fallbackLocale is not empty
 					if (!string.IsNullOrWhiteSpace(fallbackLocale))
@@ -136,24 +192,50 @@ namespace DbcLocalizer
 					continue;
 				}
 
-				// Count how many fields will be updated
-				int fieldsToUpdate = 0;
+				// We have a locale row - apply localization
+				// Collect strings from locale row for each locstring field
+				var localeValues = new List<string>();
 				var expectedValues = new Dictionary<string, string>();
 				
-				for (int i = 0; i < locFields.Count && i < strings.Count; i++)
+				foreach (var field in locFields)
 				{
-					if (!baseStorage.AvailableColumns.Contains(locFields[i]))
-						continue;
-					
-					if (!string.IsNullOrWhiteSpace(strings[i]))
+					if (!baseStorage.AvailableColumns.Contains(field))
 					{
-						fieldsToUpdate++;
-						expectedValues[locFields[i]] = strings[i];
+						localeValues.Add(string.Empty);
+						continue;
+					}
+
+					try
+					{
+						// Get the localized string from locale row
+						var value = localeRow[field];
+						string locStr = string.Empty;
+						
+						if (value is string[] strArray && strArray.Length > 0)
+						{
+							// locstring fields in DBCD are arrays of strings (one per language)
+							// For this locale, we just take the first element (or we could index by locale)
+							locStr = strArray[0] ?? string.Empty;
+						}
+						else if (value is string str)
+						{
+							locStr = str ?? string.Empty;
+						}
+
+						localeValues.Add(locStr);
+						if (!string.IsNullOrWhiteSpace(locStr))
+						{
+							expectedValues[field] = locStr;
+						}
+					}
+					catch
+					{
+						localeValues.Add(string.Empty);
 					}
 				}
 
 				// Record test case: Multi-column localization
-				if (fieldsToUpdate >= 2 && testCases.Count(tc => tc.TestType == "MultiColumn") < maxTestCases)
+				if (expectedValues.Count >= 2 && testCases.Count(tc => tc.TestType == "MultiColumn") < maxTestCases)
 				{
 					testCases.Add(new VerificationTestCase
 					{
@@ -165,10 +247,10 @@ namespace DbcLocalizer
 
 				bool changed = LocalizeRow(
 					baseRow,
-					strings,
+					localeValues,
 					locFields,
 					baseStorage.AvailableColumns,
-					localeIndex,
+					0,  // localeIndex not needed anymore - DBCD handles it
 					baseName,
 					id,
 					localeCode,
@@ -372,131 +454,6 @@ namespace DbcLocalizer
 			}
 
 			return changed;
-		}
-
-		private static Dictionary<int, List<string>> ReadLocaleStrings(
-			string localeDbcPath,
-			DBDefsLib.Structs.VersionDefinitions versionDef,
-			DBDefsLib.Structs.DBDefinition dbd,
-			int localeIndex)
-		{
-			var data = File.ReadAllBytes(localeDbcPath);
-			if (data.Length < 20)
-				throw new Exception("Invalid DBC file (too small)");
-
-			// Header
-			uint records = BitConverter.ToUInt32(data, 4);
-			uint fields = BitConverter.ToUInt32(data, 8);
-			uint recordSize = BitConverter.ToUInt32(data, 12);
-
-			int headerSize = 20;
-			int stringBlockStart = headerSize + (int)records * (int)recordSize;
-
-			// Calculate locstring field counts
-			int locCount = 0;
-			int nonLocCount = 0;
-
-			foreach (var def in versionDef.definitions)
-			{
-				if (!dbd.columnDefinitions.TryGetValue(def.name, out var col))
-					continue;
-
-				int arrLength = def.arrLength > 0 ? def.arrLength : 1;
-
-				if (string.Equals(col.type, "locstring", StringComparison.OrdinalIgnoreCase))
-				{
-					locCount += 1;
-				}
-				else
-				{
-					nonLocCount += arrLength;
-				}
-			}
-
-			if (locCount == 0)
-				return new Dictionary<int, List<string>>();
-
-			int locWidth = (int)((fields - nonLocCount) / locCount);
-			if (locWidth <= 0)
-				throw new Exception("Could not compute localized string width.");
-
-			var result = new Dictionary<int, List<string>>();
-
-			for (int rec = 0; rec < records; rec++)
-			{
-				int offset = headerSize + rec * (int)recordSize;
-				int pos = offset;
-
-				int id = -1;
-				var strings = new List<string>();
-
-				foreach (var def in versionDef.definitions)
-				{
-					if (!dbd.columnDefinitions.TryGetValue(def.name, out var col))
-						continue;
-
-					int arrLength = def.arrLength > 0 ? def.arrLength : 1;
-
-					if (def.isID)
-					{
-						id = BitConverter.ToInt32(data, pos);
-					}
-
-					if (string.Equals(col.type, "locstring", StringComparison.OrdinalIgnoreCase))
-					{
-						int localeOffset = 0;
-						if (localeIndex >= 0 && localeIndex < locWidth)
-						{
-							localeOffset = BitConverter.ToInt32(data, pos + (localeIndex * 4));
-						}
-
-						string value = ReadString(data, stringBlockStart, localeOffset);
-						strings.Add(value);
-
-						pos += locWidth * 4;
-					}
-					else
-					{
-						pos += GetFieldSize(col.type, def.size) * arrLength;
-					}
-				}
-
-				if (id != -1)
-					result[id] = strings;
-			}
-
-			return result;
-		}
-
-		private static int GetFieldSize(string type, int sizeBits)
-		{
-			switch (type)
-			{
-				case "int":
-					return Math.Max(1, sizeBits / 8);
-				case "float":
-					return 4;
-				case "string":
-					return 4;
-				default:
-					return 4;
-			}
-		}
-
-		private static string ReadString(byte[] data, int stringBlockStart, int offset)
-		{
-			if (offset <= 0)
-				return string.Empty;
-
-			int pos = stringBlockStart + offset;
-			if (pos < 0 || pos >= data.Length)
-				return string.Empty;
-
-			int end = pos;
-			while (end < data.Length && data[end] != 0)
-				end++;
-
-			return System.Text.Encoding.UTF8.GetString(data, pos, end - pos);
 		}
 
 		public static VerificationResult VerifyLocalizedDbc(
