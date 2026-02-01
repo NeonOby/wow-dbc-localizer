@@ -23,6 +23,8 @@ namespace DbcLocalizer
 			var build = Helpers.GetArg(args, "--build") ?? "3.3.5.12340";
 			var mpqcliPath = Helpers.GetArg(args, "--mpqcli") ?? "tools/mpqcli.exe";
 			var showAllIds = args.Contains("--show-all-ids");
+			var showAllLocales = args.Contains("--show-all-locales");
+			var fieldsFilter = Helpers.GetArg(args, "--fields");
 
 			if (!File.Exists(mpqPath))
 				return Fail($"MPQ file not found: {mpqPath}");
@@ -116,7 +118,7 @@ namespace DbcLocalizer
 					}
 
 					Logger.Info($"[+] Found Spell ID {id}:");
-					DisplayRecord(foundRecord, locstringColumns);
+					DisplayRecord(foundRecord, locstringColumns, showAllLocales, fieldsFilter);
 					return 0;
 				}
 
@@ -237,10 +239,19 @@ namespace DbcLocalizer
 			return false;
 		}
 
-		private static void DisplayRecord(DBCDRow record, List<string> locstringColumns)
+		private static void DisplayRecord(DBCDRow record, List<string> locstringColumns, bool showAllLocales = false, string? fieldsFilter = null)
 		{
+			var localeNames = new[] { "enUS", "koKR", "frFR", "deDE", "zhCN", "zhTW", "esES", "esMX", "ruRU", "unk9", "ptBR", "itIT", "unk12", "unk13", "unk14", "unk15" };
+			var filterFields = string.IsNullOrWhiteSpace(fieldsFilter) 
+				? null 
+				: fieldsFilter.Split(',').Select(f => f.Trim()).ToList();
+
 			foreach (var col in record.GetDynamicMemberNames())
 			{
+				// Apply field filter if specified
+				if (filterFields != null && !filterFields.Contains(col))
+					continue;
+
 				try
 				{
 					var value = record[col];
@@ -249,10 +260,25 @@ namespace DbcLocalizer
 					{
 						if (value is string[] stringArray)
 						{
-							var nonEmptyTexts = stringArray.Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
-							if (nonEmptyTexts.Any())
+							if (showAllLocales)
 							{
-								Logger.Info($"    {col}: {string.Join(" | ", nonEmptyTexts)}");
+								// Show all 16 locale slots
+								Logger.Info($"    {col}:");
+								for (int i = 0; i < Math.Min(stringArray.Length, 16); i++)
+								{
+									var text = stringArray[i] ?? "";
+									var isEmpty = string.IsNullOrWhiteSpace(text);
+									Logger.Info($"      [{i:D2}] {localeNames[i],-6}: {(isEmpty ? "(empty)" : $"'{text}'")}");
+								}
+							}
+							else
+							{
+								// Show only non-empty values (original behavior)
+								var nonEmptyTexts = stringArray.Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+								if (nonEmptyTexts.Any())
+								{
+									Logger.Info($"    {col}: {string.Join(" | ", nonEmptyTexts)}");
+								}
 							}
 						}
 					}

@@ -226,8 +226,16 @@ namespace DbcLocalizer
 						}
 
 						if (localeRow == null)
+						{
+							// Row not in locale DBC - apply fallback if available
+							if (!string.IsNullOrWhiteSpace(arr[fallbackIndex]))
+							{
+								arr[localeIndex] = arr[fallbackIndex];
+							}
 							continue;
-							// NOTE: In locale-specific DBC, the localized text is always at index 0
+						}
+						
+						// NOTE: In locale-specific DBC, the localized text is always at index 0
 							// because the DBC was loaded with a specific locale (e.g., DBCD.Locale.DeDE)
 							string locStr = string.Empty;
 							try

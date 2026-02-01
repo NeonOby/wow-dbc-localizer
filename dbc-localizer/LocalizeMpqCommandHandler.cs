@@ -42,6 +42,7 @@ namespace DbcLocalizer
 				mpqArgs.PatchMpq = Path.Combine(Directory.GetCurrentDirectory(), "input", "patch");
 				mpqArgs.OutputMpq = Path.Combine(Directory.GetCurrentDirectory(), "output");
 				mpqArgs.IsMultiPatchDir = true;
+				mpqArgs.ClearOutput = true; // Default to clearing output when running without args
 			}
 			
 			if (string.IsNullOrWhiteSpace(mpqArgs.DefsPath))
@@ -81,6 +82,33 @@ namespace DbcLocalizer
 		{
 			if (!mpqArgs.IsValid)
 				return Fail("Missing required arguments. Use --patch, --defs, --output.");
+
+			// Clear output directory if requested
+			if (mpqArgs.ClearOutput)
+			{
+				var outputDir = mpqArgs.OutputMpq;
+				if (!outputDir.EndsWith("/") && !outputDir.EndsWith("\\") && !Directory.Exists(outputDir))
+				{
+					// OutputMpq is a file path, get directory
+					outputDir = Path.GetDirectoryName(outputDir) ?? outputDir;
+				}
+
+				if (Directory.Exists(outputDir))
+				{
+					Logger.Info($"[*] Clearing output directory: {outputDir}");
+					try
+					{
+						foreach (var file in Directory.GetFiles(outputDir, "*.*", SearchOption.TopDirectoryOnly))
+						{
+							File.Delete(file);
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.Verbose($"[!] Warning: Could not clear all files in output directory: {ex.Message}");
+					}
+				}
+			}
 
 			// If multi-patch directory mode, resolve multiple patches
 			if (mpqArgs.IsMultiPatchDir && Directory.Exists(mpqArgs.PatchMpq))
@@ -153,9 +181,55 @@ namespace DbcLocalizer
 			var selectedDbcs = candidates.Select(c => c.Path).ToList();
 			Logger.Info($"[*] Found {selectedDbcs.Count} localizable table(s)");
 
+			// Resolve output path (directory vs file)
+			var outputPath = mpqArgs.OutputMpq;
+			if (outputPath.EndsWith("/") || outputPath.EndsWith("\\"))
+			{
+				Directory.CreateDirectory(outputPath);
+				outputPath = Path.Combine(outputPath, Path.GetFileName(mpqArgs.PatchMpq));
+			}
+			else if (Directory.Exists(outputPath))
+			{
+				outputPath = Path.Combine(outputPath, Path.GetFileName(mpqArgs.PatchMpq));
+			}
+			mpqArgs.OutputMpq = outputPath;
+
+			// Copy patch to output even if no localizable DBCs found
+			Logger.Info($"[*] Copying patch MPQ to output: {mpqArgs.OutputMpq}");
+			File.Copy(mpqArgs.PatchMpq, mpqArgs.OutputMpq, overwrite: true);
+
 			if (selectedDbcs.Count == 0)
 			{
-				Logger.Info("[*] No localizable DBCs found, exiting.");
+				Logger.Info("[*] No localizable DBCs found, patch copied unchanged.");
+				
+				// Generate default report path if not specified
+				var reportPath = mpqArgs.ReportPath;
+				if (string.IsNullOrWhiteSpace(reportPath))
+				{
+					var patchName = Path.GetFileNameWithoutExtension(mpqArgs.PatchMpq);
+					var outputDir = Path.GetDirectoryName(mpqArgs.OutputMpq) ?? ".";
+					reportPath = Path.Combine(outputDir, $"{patchName}-report.json");
+				}
+				
+				// Write report even when nothing was localized
+				// Clear warnings since they are not relevant when nothing was processed
+				var emptyReport = new LocalizeReport
+				{
+					TimestampUtc = DateTime.UtcNow.ToString("O"),
+					Build = mpqArgs.Build,
+					PatchMpq = mpqArgs.PatchMpq,
+					OutputMpq = mpqArgs.OutputMpq,
+					Languages = mpqArgs.Languages,
+					LocaleMpqs = mpqArgs.LocaleMpqs,
+					SelectedDbcs = new List<string>(),
+					PerLocale = new List<LocaleLocalizeResult>(),
+					TotalTablesMerged = 0,
+					TotalRowsMerged = 0,
+					TotalFieldsUpdated = 0,
+					Warnings = new List<string>() // Empty warnings when nothing was processed
+				};
+				WriteLocalizeReport(emptyReport, reportPath);
+				
 				return 0;
 			}
 
@@ -170,23 +244,6 @@ namespace DbcLocalizer
 
 			try
 			{
-				// Resolve output path (directory vs file)
-				var outputPath = mpqArgs.OutputMpq;
-				if (outputPath.EndsWith("/") || outputPath.EndsWith("\\"))
-				{
-					Directory.CreateDirectory(outputPath);
-					outputPath = Path.Combine(outputPath, Path.GetFileName(mpqArgs.PatchMpq));
-				}
-				else if (Directory.Exists(outputPath))
-				{
-					outputPath = Path.Combine(outputPath, Path.GetFileName(mpqArgs.PatchMpq));
-				}
-				mpqArgs.OutputMpq = outputPath;
-
-				// Copy patch to output
-				Logger.Info($"[*] Copying patch MPQ to output: {mpqArgs.OutputMpq}");
-				File.Copy(mpqArgs.PatchMpq, mpqArgs.OutputMpq, overwrite: true);
-
 				// Validate selected DBCs
 				var warnings2 = new List<string>();
 				selectedDbcs = DbcScanner.ValidateSelectedDbcs(mpqArgs.MpqCliPath, mpqArgs.PatchMpq, mpqArgs.LocaleMpqs, selectedDbcs, warnings2);
@@ -372,6 +429,15 @@ namespace DbcLocalizer
 
 			Logger.Info($"[*] Output MPQ: {mpqArgs.OutputMpq}");
 
+			// Generate default report path if not specified
+			var reportPath = mpqArgs.ReportPath;
+			if (string.IsNullOrWhiteSpace(reportPath))
+			{
+				var patchName = Path.GetFileNameWithoutExtension(mpqArgs.PatchMpq);
+				var outputDir = Path.GetDirectoryName(mpqArgs.OutputMpq) ?? ".";
+				reportPath = Path.Combine(outputDir, $"{patchName}-report.json");
+			}
+
 			// Write report
 			var report = new LocalizeReport
 			{
@@ -388,7 +454,7 @@ namespace DbcLocalizer
 				TotalFieldsUpdated = totalFieldsUpdated,
 				Warnings = warnings
 			};
-			WriteLocalizeReport(report, mpqArgs.ReportPath);
+			WriteLocalizeReport(report, reportPath);
 
 			return 0;
 		}

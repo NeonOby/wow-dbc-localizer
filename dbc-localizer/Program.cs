@@ -15,8 +15,22 @@ namespace DbcLocalizer
 
 			var exitCode = 0;
 
-			// If no arguments or only flags, try to load from config file for automatic mode
-			if (args.Length == 0 || (args.Length > 0 && args[0].StartsWith("--")))
+			// If --help is requested, show usage
+			if (args.Contains("--help") || args.Contains("-h"))
+			{
+				UsageWriter.PrintUsage();
+				return MaybePauseOnError(0);
+			}
+
+			// If no arguments, default to localize-mpq with auto-detection
+			if (args.Length == 0)
+			{
+				Logger.Info("[*] No arguments provided, using default: localize-mpq with auto-detection");
+				return MaybePauseOnError(LocalizeMpqCommandHandler.Execute(new string[0]));
+			}
+
+			// If only flags, try to load from config file for automatic mode
+			if (args.Length > 0 && args[0].StartsWith("--"))
 			{
 				if (File.Exists(DefaultConfigFile))
 				{
@@ -37,12 +51,6 @@ namespace DbcLocalizer
 					exitCode = 1;
 					return MaybePauseOnError(exitCode);
 				}
-			}
-
-			if (args.Contains("--help") || args.Contains("-h"))
-			{
-				UsageWriter.PrintUsage();
-				return MaybePauseOnError(0);
 			}
 
 			try
