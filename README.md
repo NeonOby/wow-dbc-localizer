@@ -172,7 +172,7 @@ dbc-localizer scan-mpq \
 
 1. **Scan Phase**: Identify localizable DBCs (containing locstring fields)
 2. **Extract Phase**: Extract DBC files from both patch and locale MPQs
-3. **Localization Phase**: Combine German texts with base patch data using WDBX definitions
+3. **Localization Phase**: Combine locale texts with base patch data using WDBX definitions
 4. **Update Phase**: Remove old DBCs and add localized versions to output MPQ
 5. **Report Phase**: Generate JSON report with statistics
 

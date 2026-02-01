@@ -52,16 +52,18 @@ namespace DbcLocalizer
 
 			Logger.Info($"Found {patchFiles.Count} patch file(s) to process");
 
-			var allExitCode = 0;
+		// Clear output directory if requested
+		var mpqArgs = LocalizeMpqArgs.Parse(args);
+		if (mpqArgs.ClearOutput && !string.IsNullOrWhiteSpace(mpqArgs.OutputMpq))
+		{
+			ClearOutputDirectory(mpqArgs.OutputMpq);
+		}
 
-			foreach (var patchFile in patchFiles)
-			{
-				Logger.Info($"\n[*] Processing: {Path.GetFileName(patchFile)}");
-				
-				// Build arguments for this specific patch
-				var patchArgs = args.ToList();
-				
-				// Remove the multi-patch-dir argument
+		int allExitCode = 0;
+		foreach (var patchFile in patchFiles)
+		{
+			Logger.Info($"\n[*] Processing patch: {Path.GetFileName(patchFile)}");
+			var patchArgs = args.ToList();
 				var multiIdx = patchArgs.IndexOf("--multi-patch-dir");
 				if (multiIdx >= 0)
 				{
@@ -473,6 +475,63 @@ namespace DbcLocalizer
 			return indices.Select(idx => candidates[idx].Path).ToList();
 		}
 
+		private static void ClearOutputDirectory(string outputPath)
+		{
+			try
+			{
+				// Determine the actual output directory
+				string? outputDir = null;
+				
+				if (outputPath.EndsWith("/") || outputPath.EndsWith("\\"))
+				{
+					// It's already a directory
+					outputDir = outputPath.TrimEnd('/', '\\');
+				}
+				else if (Directory.Exists(outputPath))
+				{
+					// It's a directory path without trailing slash
+					outputDir = outputPath;
+				}
+				else
+				{
+					// It's a file path, get the directory
+					outputDir = Path.GetDirectoryName(outputPath);
+				}
+
+				if (string.IsNullOrWhiteSpace(outputDir) || !Directory.Exists(outputDir))
+				{
+					Logger.Info($"[*] Output directory does not exist yet, skipping clear: {outputDir}");
+					return;
+				}
+
+				Logger.Info($"[*] Clearing output directory: {outputDir}");
+				
+				// Delete all .mpq and .json files in the output directory
+				var mpqFiles = Directory.GetFiles(outputDir, "*.mpq");
+				var jsonFiles = Directory.GetFiles(outputDir, "*.json");
+				
+				int deletedCount = 0;
+				foreach (var file in mpqFiles.Concat(jsonFiles))
+				{
+					try
+					{
+						File.Delete(file);
+						deletedCount++;
+					}
+					catch (Exception ex)
+					{
+						Logger.Error($"Failed to delete {Path.GetFileName(file)}: {ex.Message}");
+					}
+				}
+				
+				Logger.Info($"[*] Deleted {deletedCount} file(s) from output directory");
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed to clear output directory: {ex.Message}");
+			}
+		}
+
 		private static int Fail(string message, int exitCode = 1)
 		{
 			Logger.Error(message);
@@ -480,3 +539,4 @@ namespace DbcLocalizer
 		}
 	}
 }
+

@@ -27,20 +27,29 @@ AUTOMATIC MODE (config.json):
   If you run dbc-localizer without arguments, it will look for config.json in the current directory.
   Create a config.json file with the following structure:
   {
-    ""patch"": ""input/patch/patch-B.mpq"",
+    ""patch"": ""input/patch/"",
     ""locale-dir"": ""input/locale/"",
     ""defs"": ""defs/WoWDBDefs/definitions"",
     ""build"": ""3.3.5.12340"",
-    ""output"": ""output/localized.mpq"",
+    ""output"": ""output/"",
     ""auto"": true,
     ""verbose"": false,
-    ""report"": ""output/{patch}-report.json""
+    ""report"": ""output/{patch}-report.json"",
+    ""clear-output"": true
   }
 
-  If ""locale-mpqs"" is not provided, locale MPQs are auto-detected from ""locale-dir""
-  (matching locale-<lang>.mpq and patch-<lang>-X.mpq), and languages are derived
-  from the filenames.
-  The {patch} placeholder in ""report"" is replaced with the patch filename (no extension).
+  AUTOMATIC LOCALE DETECTION:
+  - Locale codes are automatically extracted from MPQ filenames
+  - Example: locale-deDE.MPQ → deDE, locale-frFR.MPQ → frFR, patch-ruRU-2.mpq → ruRU
+  
+  CROSS-PRODUCT MODE (automatic with multiple locales + patch directory):
+  - When ""patch"" is a directory and multiple locale MPQs exist, ALL combinations are created:
+    - patch-A.mpq + locale-deDE.MPQ → output/patch-A-deDE.mpq
+    - patch-A.mpq + locale-frFR.MPQ → output/patch-A-frFR.mpq
+    - patch-B.mpq + locale-deDE.MPQ → output/patch-B-deDE.mpq
+    - patch-B.mpq + locale-frFR.MPQ → output/patch-B-frFR.mpq
+
+  The {patch} placeholder in ""report"" is replaced with the patch filename + locale (no extension).
 
 LOCALIZE OPTIONS:
   --base <path>       Base DBC file (patch)
@@ -55,6 +64,7 @@ LOCALIZE-MPQ OPTIONS:
   --locale-mpq <mpq>    Single locale MPQ file
   --locale-mpqs <list>  Multiple locale MPQs (semicolon-separated)
   --langs <list>        Language codes (semicolon-separated, matches --locale-mpqs order)
+                        If omitted, locales are auto-detected from MPQ filenames
   --defs <path>         DBD definitions directory
   --output <mpq>        Output MPQ path
   --dbc <path>          Single DBC relative path (e.g., DBFilesClient\Spell.dbc)
@@ -62,10 +72,12 @@ LOCALIZE-MPQ OPTIONS:
   --select              Interactive DBC selection mode
   --auto                Automatically localize all localizable DBCs
   --build <build>       WoW build (default: 3.3.5.12340)
-  --lang <code>         Locale code for single locale (default: deDE)
+  --lang <code>         Locale code for single locale (if not auto-detected)
   --mpqcli <path>       Path to mpqcli.exe
   --keep-temp           Keep temporary files
   --report <path>       Write JSON report
+  --cross-product       Create all patch×locale combinations (automatic in config mode)
+    --clear-output        Clear output directory before processing (default: true in config mode)
   --log-level <level>   Log level: info or verbose (default: info)
   --verbose             Enable verbose logging (alias for --log-level verbose)
 

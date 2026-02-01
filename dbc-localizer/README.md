@@ -6,11 +6,13 @@ Ein C#-basiertes Tool zum Zusammenführen von lokalisierten WoW-DBC-Dateien aus 
 
 - ✅ Automatische Erkennung von lokalisierungsfähigen DBCs
 - ✅ Mehrfach-Lokalisierungen in einem Durchlauf (z.B. alle Patch-Updates)
+- ✅ **Automatische Locale-Erkennung** (aus MPQ-Dateinamen: locale-deDE.MPQ → deDE)
+- ✅ **Cross-Product-Modus** (Jeder Patch × Jede Locale = Alle Kombinationen)
 - ✅ Strukturierte Logging-Ausgabe (Info/Verbose Level)
 - ✅ JSON-Reportgenerierung mit Statistiken
 - ✅ Interaktive oder automatische DBC-Auswahl
 - ✅ Config-Datei-basierte automatische Ausführung
-- ✅ **Automatische Output-Bennenung** (Output hat gleichen Namen wie Input-Patch)
+- ✅ **Automatische Output-Bennenung** (patch-A + deDE → patch-A-deDE.mpq)
 - ✅ Detaillierte Fehlermeldungen und Warnungen
 
 ## Installation
@@ -28,7 +30,7 @@ Bearbeite `config.json` und passe die Pfade an:
 
 ```json
 {
-  "patch": "input/patch/patch-B.mpq",
+  "patch": "input/patch/",
   "locale-dir": "input/locale/",
   "defs": "defs/WoWDBDefs/definitions",
   "build": "3.3.5.12340",
@@ -39,9 +41,15 @@ Bearbeite `config.json` und passe die Pfade an:
 }
 ```
 
-**Hinweis:** Der `output`-Pfad kann ein Verzeichnis sein (mit `/` oder `\` am Ende).
-Die Output-Datei wird automatisch den gleichen Namen wie die Input-Patch-Datei bekommen:
-- Input: `patch-B.mpq` → Output: `output/patch-B.mpq`
+**Automatische Cross-Product-Verarbeitung:**
+- `"patch"` als Verzeichnis (z.B. `"input/patch/"`) = Alle .mpq Dateien werden verarbeitet
+- `"locale-dir"` = Alle locale-*.mpq Dateien werden automatisch erkannt
+- **Locales werden automatisch aus Dateinamen extrahiert:** `locale-deDE.MPQ` → `deDE`, `locale-frFR.MPQ` → `frFR`
+- **Jeder Patch wird mit jeder Locale kombiniert:**
+  - `patch-A.mpq` + `locale-deDE.MPQ` → `output/patch-A-deDE.mpq`
+  - `patch-A.mpq` + `locale-frFR.MPQ` → `output/patch-A-frFR.mpq`
+  - `patch-B.mpq` + `locale-deDE.MPQ` → `output/patch-B-deDE.mpq`
+  - `patch-B.mpq` + `locale-frFR.MPQ` → `output/patch-B-frFR.mpq`
 
 ### Schritt 2: Ausführen
 

@@ -10,9 +10,10 @@ input/
   │   └── ...
   │
   └── locale/             ← User packt hier ALLE Locale MPQs rein
-      ├── locale-deDE.MPQ ← Deutsch
-      ├── locale-frFR.MPQ ← Französisch
-      └── locale-ruRU.MPQ ← Russisch
+      ├── locale-deDE.MPQ
+      ├── locale-frFR.MPQ
+      └── locale-ruRU.MPQ
+      (Unterstützt: deDE, enUS, frFR, ruRU, esES, esMX, koKR, zhCN, zhTW, jaJP, ptPT, itIT)
       
 output/
   ├── patch-B-merged.mpq  ← Patch mit allen Übersetzungen

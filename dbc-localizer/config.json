@@ -6,5 +6,6 @@
   "output": "output/",
   "auto": true,
   "verbose": false,
-  "report": "output/{patch}-report.json"
+  "report": "output/{patch}-report.json",
+  "clear-output": true
 }

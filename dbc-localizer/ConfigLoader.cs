@@ -103,6 +103,7 @@ namespace DbcLocalizer
 				if (langList.Count > 0)
 					args.AddRange(new[] { "--langs", string.Join(";", langList) });
 
+
 				// Optional fields
 				if (root.TryGetProperty("build", out var build) && build.ValueKind == JsonValueKind.String)
 					args.AddRange(new[] { "--build", build.GetString()! });
@@ -115,6 +116,9 @@ namespace DbcLocalizer
 
 				if (root.TryGetProperty("report", out var report) && report.ValueKind == JsonValueKind.String)
 					args.AddRange(new[] { "--report", report.GetString()! });
+
+				if (root.TryGetProperty("clear-output", out var clearOutput) && clearOutput.ValueKind == JsonValueKind.True)
+					args.Add("--clear-output");
 
 				return args.ToArray();
 			}

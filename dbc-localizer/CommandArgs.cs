@@ -55,6 +55,8 @@ namespace DbcLocalizer
 		public bool AutoAll { get; set; }
 		public string ReportPath { get; set; } = string.Empty;
 		public bool IsMultiPatchDir { get; set; }
+		public bool IsMultiLocalePerPatch { get; set; }
+		public bool ClearOutput { get; set; }
 
 		public bool IsValid => !string.IsNullOrWhiteSpace(PatchMpq) && 
 		                       !string.IsNullOrWhiteSpace(DefsPath) && 
@@ -113,7 +115,9 @@ namespace DbcLocalizer
 				ReportPath = Helpers.GetArg(args, "--report") ?? string.Empty,
 				AutoAll = args.Contains("--auto", StringComparer.OrdinalIgnoreCase) || args.Contains("--all", StringComparer.OrdinalIgnoreCase),
 				Interactive = args.Contains("--select", StringComparer.OrdinalIgnoreCase),
-				IsMultiPatchDir = !string.IsNullOrWhiteSpace(multiPatchDir)
+				IsMultiPatchDir = !string.IsNullOrWhiteSpace(multiPatchDir),
+				IsMultiLocalePerPatch = args.Contains("--cross-product", StringComparer.OrdinalIgnoreCase),
+				ClearOutput = args.Contains("--clear-output", StringComparer.OrdinalIgnoreCase)
 			};
 		}
 	}

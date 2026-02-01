@@ -12,7 +12,7 @@
 1. Go to https://github.com/new
 2. Fill in the details:
    - **Repository name**: `dbc-localizer` (or your preferred name)
-   - **Description**: "Automated German text localization for World of Warcraft 3.3.5 MPQ files"
+   - **Description**: "Automated text localization for World of Warcraft MPQ files (all locales supported)"
    - **Visibility**: Choose `Public` or `Private`
    - **Add .gitignore**: No (we already have one)
    - **Add a license**: Choose a license (MIT recommended for open-source)

@@ -1,6 +1,6 @@
 # DBC-Localizer - Quickstart
 
-Localize German texts from WoW 3.3.5 MPQ files using the C# CLI tool.
+Localize texts from WoW MPQ files using the C# CLI tool (supports all locales: deDE, enUS, frFR, ruRU, etc.).
 
 ## Requirements
 - .NET 10.0 SDK
@@ -32,13 +32,13 @@ dotnet bin/Release/net9.0/dbc-localizer.dll localize-mpq
 This will:
 1. ✓ Extract DBCs from both MPQs (patch-B.mpq, locale-deDE.MPQ)
 2. ✓ Parse DBD definitions for field mapping
-3. ✓ Localize 20,050+ German texts into Spell.dbc
+3. ✓ Localize 20,050+ locale texts into Spell.dbc
 4. ✓ Create new MPQ: `output/Patch-B-localized.mpq`
 
 ## Input Files
 Place these in project root:
 - `patch-B.mpq` - Base patch file
-- `locale-deDE.MPQ` - German locale data
+- `locale-*.MPQ` - Locale data (e.g., locale-deDE.MPQ for German, locale-frFR.MPQ for French)
 - `dbcd-lib/definitions/` - WoW 3.3.5 DBD definitions (auto-downloaded)
 
 ## Commands
