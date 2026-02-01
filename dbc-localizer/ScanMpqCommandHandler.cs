@@ -30,8 +30,10 @@ namespace DbcLocalizer
 					return Fail($"Locale MPQ not found: {mpq}");
 			}
 
-			if (!DefsManager.EnsureDefinitions(ref scanArgs.DefsPath, scanArgs.Build))
+			var defsPath = scanArgs.DefsPath;
+			if (!DefsManager.EnsureDefinitions(ref defsPath, scanArgs.Build))
 				return Fail($"Definitions path not found: {scanArgs.DefsPath}");
+			scanArgs.DefsPath = defsPath;
 
 			if (!File.Exists(scanArgs.MpqCliPath))
 				return Fail($"mpqcli not found: {scanArgs.MpqCliPath}");

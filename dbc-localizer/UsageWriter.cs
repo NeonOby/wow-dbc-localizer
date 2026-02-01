@@ -29,15 +29,15 @@ AUTOMATIC MODE (config.json):
   {
     ""patch"": ""input/patch/patch-B.mpq"",
     ""locale-dir"": ""input/locale/"",
-      ""defs"": ""defs/WoWDBDefs/definitions"",
-      ""build"": ""3.3.5.12340"",
-        ""output"": ""output/localized.mpq"",
+    ""defs"": ""defs/WoWDBDefs/definitions"",
+    ""build"": ""3.3.5.12340"",
+    ""output"": ""output/localized.mpq"",
     ""auto"": true,
     ""verbose"": false,
-        ""report"": ""output/localize-report.json""
+    ""report"": ""output/localize-report.json""
   }
 
-  If "locale-mpqs" is not provided, locale MPQs are auto-detected from "locale-dir"
+  If ""locale-mpqs"" is not provided, locale MPQs are auto-detected from ""locale-dir""
   (matching locale-<lang>.mpq and patch-<lang>-X.mpq), and languages are derived
   from the filenames.
 
