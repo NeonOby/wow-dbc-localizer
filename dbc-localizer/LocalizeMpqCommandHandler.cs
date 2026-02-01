@@ -252,6 +252,21 @@ namespace DbcLocalizer
 			}
 			finally
 			{
+				if (!mpqArgs.KeepTemp)
+				{
+					try
+					{
+						if (Directory.Exists(tempRoot))
+							Directory.Delete(tempRoot, true);
+					}
+					catch
+					{
+						// ignore cleanup errors
+					}
+				}
+			}
+			finally
+			{
 				if (!mpqArgs.KeepTemp && Directory.Exists(tempRoot))
 				{
 					try { Directory.Delete(tempRoot, recursive: true); }
