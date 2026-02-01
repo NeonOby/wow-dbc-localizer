@@ -28,19 +28,17 @@ AUTOMATIC MODE (config.json):
   Create a config.json file with the following structure:
   {
     ""patch"": ""input/patch/patch-B.mpq"",
-    ""locale-mpqs"": [
-      ""input/locale/locale-deDE.MPQ"",
-      ""input/locale/patch-deDE.MPQ"",
-      ""input/locale/patch-deDE-2.MPQ"",
-      ""input/locale/patch-deDE-3.MPQ""
-    ],
-    ""langs"": [""deDE"", ""deDE"", ""deDE"", ""deDE""],
+    ""locale-dir"": ""input/locale/"",
         ""defs"": ""dbcd-lib/definitions/definitions"",
         ""output"": ""output/localized.mpq"",
     ""auto"": true,
     ""verbose"": false,
         ""report"": ""output/localize-report.json""
   }
+
+  If "locale-mpqs" is not provided, locale MPQs are auto-detected from "locale-dir"
+  (matching locale-<lang>.mpq and patch-<lang>-X.mpq), and languages are derived
+  from the filenames.
 
 LOCALIZE OPTIONS:
   --base <path>       Base DBC file (patch)

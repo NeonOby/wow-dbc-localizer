@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DbcLocalizer
 {
@@ -49,31 +50,58 @@ namespace DbcLocalizer
 					args.AddRange(new[] { "--output", outputPath });
 				}
 
-				// Locale MPQs (array)
+				// Locale MPQs (array) - if missing, auto-detect from locale directory
+				var mpqs = new List<string>();
+				var langList = new List<string>();
+
 				if (root.TryGetProperty("locale-mpqs", out var locales) && locales.ValueKind == JsonValueKind.Array)
 				{
-					var mpqs = new List<string>();
 					foreach (var item in locales.EnumerateArray())
 					{
 						if (item.ValueKind == JsonValueKind.String)
 							mpqs.Add(item.GetString()!);
 					}
-					if (mpqs.Count > 0)
-						args.AddRange(new[] { "--locale-mpqs", string.Join(";", mpqs) });
+				}
+				else
+				{
+					var localeDir = GetLocaleDirectory(root, patchPath);
+					if (!string.IsNullOrWhiteSpace(localeDir) && Directory.Exists(localeDir))
+					{
+						var detected = Directory
+							.GetFiles(localeDir, "*.mpq", SearchOption.TopDirectoryOnly)
+							.Where(IsLocaleMpq)
+							.OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+							.ToList();
+
+						foreach (var file in detected)
+							mpqs.Add(file);
+					}
 				}
 
-				// Languages (array)
+				if (mpqs.Count > 0)
+					args.AddRange(new[] { "--locale-mpqs", string.Join(";", mpqs) });
+
+				// Languages (array) - if missing, derive from locale mpq names
 				if (root.TryGetProperty("langs", out var langs) && langs.ValueKind == JsonValueKind.Array)
 				{
-					var langList = new List<string>();
 					foreach (var item in langs.EnumerateArray())
 					{
 						if (item.ValueKind == JsonValueKind.String)
 							langList.Add(item.GetString()!);
 					}
-					if (langList.Count > 0)
-						args.AddRange(new[] { "--langs", string.Join(";", langList) });
 				}
+				else if (mpqs.Count > 0)
+				{
+					foreach (var mpq in mpqs)
+					{
+						var lang = ExtractLangFromMpqName(mpq);
+						if (!string.IsNullOrWhiteSpace(lang))
+							langList.Add(lang);
+					}
+				}
+
+				if (langList.Count > 0)
+					args.AddRange(new[] { "--langs", string.Join(";", langList) });
 
 				// Optional fields
 				if (root.TryGetProperty("build", out var build) && build.ValueKind == JsonValueKind.String)
@@ -95,6 +123,44 @@ namespace DbcLocalizer
 				Logger.Error($"Failed to load config: {ex.Message}");
 				return Array.Empty<string>();
 			}
+		}
+
+		private static string? GetLocaleDirectory(JsonElement root, string? patchPath)
+		{
+			if (root.TryGetProperty("locale-dir", out var localeDir) && localeDir.ValueKind == JsonValueKind.String)
+				return localeDir.GetString();
+
+			if (root.TryGetProperty("locale", out var locale) && locale.ValueKind == JsonValueKind.String)
+				return locale.GetString();
+
+			if (!string.IsNullOrWhiteSpace(patchPath))
+			{
+				var normalized = patchPath!.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+				var baseDir = Directory.Exists(normalized)
+					? Path.GetDirectoryName(normalized)
+					: Path.GetDirectoryName(patchPath);
+
+				if (!string.IsNullOrWhiteSpace(baseDir))
+					return Path.Combine(baseDir!, "locale");
+			}
+
+			return null;
+		}
+
+		private static bool IsLocaleMpq(string path)
+		{
+			return Regex.IsMatch(Path.GetFileName(path),
+				@"^(locale|patch)-[a-zA-Z]{2}[a-zA-Z]{2}(?:-\d+)?\.mpq$",
+				RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+		}
+
+		private static string? ExtractLangFromMpqName(string path)
+		{
+			var match = Regex.Match(Path.GetFileName(path),
+				@"^(?:locale|patch)-(?<lang>[a-zA-Z]{2}[a-zA-Z]{2})(?:-\d+)?\.mpq$",
+				RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+			return match.Success ? match.Groups["lang"].Value : null;
 		}
 	}
 }
