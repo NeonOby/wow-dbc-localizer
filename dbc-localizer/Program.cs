@@ -13,6 +13,8 @@ namespace DbcLocalizer
 		{
 			RegisterLibResolver();
 
+			var exitCode = 0;
+
 			// If no arguments, try to load from config file for automatic mode
 			if (args.Length == 0)
 			{
@@ -23,20 +25,23 @@ namespace DbcLocalizer
 					if (args.Length == 0)
 					{
 						UsageWriter.PrintUsage();
-						return 1;
+						exitCode = 1;
+						return MaybePauseOnError(exitCode);
 					}
 				}
 				else
 				{
 					UsageWriter.PrintUsage();
-					return 1;
+					exitCode = 1;
+					return MaybePauseOnError(exitCode);
 				}
 			}
 
 			if (args.Contains("--help") || args.Contains("-h"))
 			{
 				UsageWriter.PrintUsage();
-				return 1;
+				exitCode = 1;
+				return MaybePauseOnError(exitCode);
 			}
 
 			try
@@ -44,7 +49,7 @@ namespace DbcLocalizer
 				var command = args[0].ToLowerInvariant();
 				var cmdArgs = args.Skip(1).ToArray();
 				
-				return command switch
+				exitCode = command switch
 				{
 					"localize" => LocalizeCommandHandler.Execute(cmdArgs),
 					"localize-mpq" => LocalizeMpqCommandHandler.Execute(cmdArgs),
@@ -52,11 +57,13 @@ namespace DbcLocalizer
 
 					_ => UnknownCommand(command)
 				};
+				return MaybePauseOnError(exitCode);
 			}
 			catch (Exception ex)
 			{
 				Logger.Error(ex.ToString());
-				return 1;
+				exitCode = 1;
+				return MaybePauseOnError(exitCode);
 			}
 		}
 
@@ -89,6 +96,16 @@ namespace DbcLocalizer
 		{
 			Logger.Error($"Unknown command: {command}");
 			return 1;
+		}
+
+		private static int MaybePauseOnError(int exitCode)
+		{
+			if (exitCode != 0 && Environment.UserInteractive)
+			{
+				Console.WriteLine("\nPress any key to exit...");
+				Console.ReadKey(true);
+			}
+			return exitCode;
 		}
 	}
 }
