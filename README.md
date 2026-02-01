@@ -3,7 +3,7 @@
 <table>
   <tr>
     <td width="420" valign="top">
-      <img src="dbc-localizer/icons/wow-style-icon--welt-als-hintegrund--zahnrad-umran.png" width="420" alt="DBC-Localizer Icon" />
+      <img src="dbc-localizer/icons/wow-style-icon--welt-als-hintegrund--zahnrad-umran.png" width="300" alt="DBC-Localizer Icon" />
     </td>
     <td valign="top">
       <strong>Automated German text localization for World of Warcraft MPQ files (build configurable)</strong>
