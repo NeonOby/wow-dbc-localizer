@@ -107,26 +107,6 @@ jobs:
           files: dbc-localizer-*.zip
           draft: false
           prerelease: false
-          body: |
-            ## WoW DBC Localizer Release
-            
-            Windows x64 Release Package
-            
-            ### Contents
-            - `dbc-localizer.exe` - Main executable (with WoW icon)
-            - `config.json` - Configuration template
-            - `lib/` - Required .NET dependencies
-            - `input/` - Input directory for DBC/MPQ files
-            - `output/` - Output directory for processed files
-            - `tools/` - Helper tools (mpqcli)
-            
-            ### Usage
-            ```
-            dbc-localizer localize <input.dbc> <output.dbc> <field_mapping.json>
-            dbc-localizer localize-mpq <input.mpq> <output.mpq> <field_mapping.json>
-            dbc-localizer scan-mpq <input.mpq>
-            ```
-            
-            For more information, see [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
