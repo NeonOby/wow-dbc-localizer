@@ -79,7 +79,12 @@ namespace DbcLocalizer
 				if (outputIdx >= 0 && outputIdx + 1 < patchArgs.Count)
 				{
 					var outputDir = patchArgs[outputIdx + 1];
-					if ((outputDir.EndsWith("/") || outputDir.EndsWith("\\")) && Directory.Exists(outputDir))
+					if (outputDir.EndsWith("/") || outputDir.EndsWith("\\"))
+					{
+						Directory.CreateDirectory(outputDir);
+						patchArgs[outputIdx + 1] = Path.Combine(outputDir, Path.GetFileName(patchFile));
+					}
+					else if (Directory.Exists(outputDir))
 					{
 						patchArgs[outputIdx + 1] = Path.Combine(outputDir, Path.GetFileName(patchFile));
 					}
@@ -228,6 +233,19 @@ namespace DbcLocalizer
 
 			try
 			{
+				// Resolve output path (directory vs file)
+				var outputPath = mpqArgs.OutputMpq;
+				if (outputPath.EndsWith("/") || outputPath.EndsWith("\\"))
+				{
+					Directory.CreateDirectory(outputPath);
+					outputPath = Path.Combine(outputPath, Path.GetFileName(mpqArgs.PatchMpq));
+				}
+				else if (Directory.Exists(outputPath))
+				{
+					outputPath = Path.Combine(outputPath, Path.GetFileName(mpqArgs.PatchMpq));
+				}
+				mpqArgs.OutputMpq = outputPath;
+
 				// Copy patch to output
 				Logger.Info($"[*] Copying patch MPQ to output: {mpqArgs.OutputMpq}");
 				File.Copy(mpqArgs.PatchMpq, mpqArgs.OutputMpq, overwrite: true);
