@@ -82,15 +82,15 @@ namespace DbcLocalizer
 					// Apply fallback only if fallbackLocale is not empty
 					if (!string.IsNullOrWhiteSpace(fallbackLocale))
 					{
-						if (TryFillMissingLocaleFromBase(
-							baseRow,
-							locFields,
-							baseStorage.AvailableColumns,
-							localeIndex,
-							baseName,
-							id,
-							localeCode,
-							targetPath,
+					var fallbackIndex = Helpers.GetLocaleIndex(fallbackLocale, build);
+					if (TryFillMissingLocaleFromBase(
+						baseRow,
+						locFields,
+						baseStorage.AvailableColumns,
+						localeIndex,
+						fallbackIndex,						baseName,
+						id,
+						localeCode,							targetPath,
 							verboseLog,
 							out var fallbackUpdates))
 						{
@@ -312,8 +312,7 @@ namespace DbcLocalizer
 			DBCDRow baseRow,
 			List<string> locFields,
 			string[] availableColumns,
-			int localeIndex,
-			string tableName,
+			int localeIndex,		int fallbackIndex,			string tableName,
 			int id,
 			string localeCode,
 			string targetPath,
@@ -339,7 +338,13 @@ namespace DbcLocalizer
 						if (!string.IsNullOrWhiteSpace(arr[localeIndex]))
 							continue;
 
-						var fallback = arr.FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+					// Use fallback from specific index only (e.g., enUS from patch file)
+					string fallback = string.Empty;
+					if (fallbackIndex >= 0 && fallbackIndex < arr.Length)
+					{
+						fallback = arr[fallbackIndex];
+					}
+
 						if (string.IsNullOrWhiteSpace(fallback))
 							continue;
 
