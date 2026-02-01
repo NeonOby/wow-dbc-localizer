@@ -143,6 +143,9 @@ dbc-localizer localize-mpq \
 ### Output Cleanup
 Set `clear-output` to `true` to delete existing `*.mpq` and `*.json` files in the output directory before processing.
 
+### Missing Locale Entries
+If a locale MPQ lacks a row for a custom record, the tool now fills the missing locale string from the base row (typically enUS) so custom content remains visible.
+
 ## Commands
 
 ### localize

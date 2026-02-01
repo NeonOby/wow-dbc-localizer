@@ -57,7 +57,24 @@ namespace DbcLocalizer
 				var baseRow = kvp.Value;
 
 				if (!localeStrings.TryGetValue(id, out var strings))
+				{
+					if (TryFillMissingLocaleFromBase(
+						baseRow,
+						locFields,
+						baseStorage.AvailableColumns,
+						localeIndex,
+						baseName,
+						id,
+						localeCode,
+						targetPath,
+						verboseLog,
+						out var fallbackUpdates))
+					{
+						mergedRows++;
+						fieldsUpdated += fallbackUpdates;
+					}
 					continue;
+				}
 
 				bool changed = LocalizeRow(
 					baseRow,
@@ -156,6 +173,67 @@ namespace DbcLocalizer
 				catch
 				{
 					// Ignore field assignment errors
+				}
+			}
+
+			return changed;
+		}
+
+		private static bool TryFillMissingLocaleFromBase(
+			DBCDRow baseRow,
+			List<string> locFields,
+			string[] availableColumns,
+			int localeIndex,
+			string tableName,
+			int id,
+			string localeCode,
+			string targetPath,
+			Action<string>? verboseLog,
+			out int fieldUpdates)
+		{
+			fieldUpdates = 0;
+			bool changed = false;
+
+			if (localeIndex <= 0)
+				return false;
+
+			foreach (var field in locFields)
+			{
+				try
+				{
+					var value = baseRow[field];
+					if (value is string[] arr)
+					{
+						if (localeIndex < 0 || localeIndex >= arr.Length)
+							continue;
+
+						if (!string.IsNullOrWhiteSpace(arr[localeIndex]))
+							continue;
+
+						var fallback = arr.FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+						if (string.IsNullOrWhiteSpace(fallback))
+							continue;
+
+						arr[localeIndex] = fallback;
+						baseRow[field] = arr;
+						changed = true;
+						fieldUpdates++;
+						verboseLog?.Invoke($"filled missing {localeCode} from base to {targetPath} {tableName}.dbc ID {id} field {field}");
+
+						var maskField = field + "_mask";
+						if (availableColumns.Contains(maskField))
+						{
+							var currentMask = Convert.ToUInt32(baseRow[maskField]);
+							if (localeIndex < 32)
+							{
+								baseRow[maskField] = currentMask | (1u << localeIndex);
+							}
+						}
+					}
+				}
+				catch
+				{
+					// ignore
 				}
 			}
 
