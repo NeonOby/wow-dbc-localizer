@@ -325,9 +325,10 @@ namespace DbcLocalizer
 				int localeRowsMerged = 0;
 				int localeFieldsUpdated = 0;
 				int localeTablesMerged = 0;
+			var sampleChanges = new Dictionary<string, List<SampleChange>>();
 
-				foreach (var dbcRelPath in selectedDbcs)
-				{
+			foreach (var dbcRelPath in selectedDbcs)
+			{
 					try
 					{
 						// Extract from patch
@@ -348,7 +349,10 @@ namespace DbcLocalizer
 							localeMpqPath,
 							mpqArgs.OutputMpq,
 							Logger.Verbose,
-							out var stats);
+					out var stats,
+					"enUS",
+					true,
+					sampleChanges);
 
 						if (exitCode == 0)
 						{
@@ -392,9 +396,9 @@ namespace DbcLocalizer
 					Language = lang,
 					TablesMerged = localeTablesMerged,
 					RowsMerged = localeRowsMerged,
-					FieldsUpdated = localeFieldsUpdated
-				});
-
+					FieldsUpdated = localeFieldsUpdated,
+				SampleChanges = sampleChanges
+			});
 				Logger.Info($"[*] Locale {lang} summary: {localeTablesMerged} table(s), {localeRowsMerged} row(s), {localeFieldsUpdated} field(s)");
 			}
 
