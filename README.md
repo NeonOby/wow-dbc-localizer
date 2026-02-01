@@ -14,6 +14,7 @@
       <ul>
         <li>✓ <strong>Fast C# implementation</strong> - High-performance DBC processing</li>
         <li>✓ <strong>Batch processing</strong> - Localize multiple patches/locales at once</li>
+        <li>✓ <strong>Auto locale detection</strong> - Locale codes extracted from MPQ filenames</li>
         <li>✓ <strong>Multiple modes</strong> - Auto-detect, interactive selection, or explicit DBC lists</li>
         <li>✓ <strong>JSON reports</strong> - Detailed localization statistics and warnings</li>
         <li>✓ <strong>Config file support</strong> - Fully automated via <code>config.json</code></li>
@@ -108,7 +109,6 @@ dbc-localizer localize-mpq \
 dbc-localizer localize-mpq \
   --patch input/patch/patch-B.mpq \
   --locale-mpqs "input/locale/locale-deDE.MPQ;input/locale/patch-deDE.MPQ" \
-  --langs "deDE;deDE" \
   --defs defs/WoWDBDefs/definitions \
   --output output/ \
   --auto
@@ -135,9 +135,13 @@ dbc-localizer localize-mpq \
   "output": "output/",
   "auto": true,
   "verbose": false,
-  "report": "output/{patch}-report.json"
+  "report": "output/{patch}-report.json",
+  "clear-output": true
 }
 ```
+
+### Output Cleanup
+Set `clear-output` to `true` to delete existing `*.mpq` and `*.json` files in the output directory before processing.
 
 ## Commands
 
