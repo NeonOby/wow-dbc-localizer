@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace DbcLocalizer
 {
@@ -10,6 +11,8 @@ namespace DbcLocalizer
 
 		private static int Main(string[] args)
 		{
+			RegisterLibResolver();
+
 			// If no arguments, try to load from config file for automatic mode
 			if (args.Length == 0)
 			{
@@ -55,6 +58,31 @@ namespace DbcLocalizer
 				Logger.Error(ex.ToString());
 				return 1;
 			}
+		}
+
+		private static void RegisterLibResolver()
+		{
+			var baseDir = AppContext.BaseDirectory;
+			var libDir = Path.Combine(baseDir, "lib");
+			if (!Directory.Exists(libDir))
+				return;
+
+			AppDomain.CurrentDomain.AssemblyResolve += (_, evt) =>
+			{
+				try
+				{
+					var name = new AssemblyName(evt.Name).Name + ".dll";
+					var candidate = Path.Combine(libDir, name);
+					if (File.Exists(candidate))
+						return Assembly.LoadFrom(candidate);
+				}
+				catch
+				{
+					// ignore and let default resolver handle it
+				}
+
+				return null;
+			};
 		}
 
 		private static int UnknownCommand(string command)
