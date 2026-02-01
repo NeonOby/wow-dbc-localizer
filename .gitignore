@@ -21,11 +21,6 @@ x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 
-# Virtual Environment (legacy Python)
-venv/
-env/
-.venv
-
 # IDE
 .vscode/
 .idea/
@@ -33,28 +28,6 @@ env/
 *.swo
 *~
 .DS_Store
-
-# Python (legacy)
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
 # Project specific - Large files and generated
 *.mpq
