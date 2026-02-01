@@ -89,12 +89,28 @@ namespace DbcLocalizer
 				var reportIdx = patchArgs.IndexOf("--report");
 				if (reportIdx >= 0 && reportIdx + 1 < patchArgs.Count)
 				{
-					var reportDir = patchArgs[reportIdx + 1];
-					if ((reportDir.EndsWith("/") || reportDir.EndsWith("\\")) && Directory.Exists(reportDir))
+					var reportPath = patchArgs[reportIdx + 1];
+					var patchBaseName = Path.GetFileNameWithoutExtension(patchFile);
+					string? reportDir = null;
+
+					if (reportPath.EndsWith("/") || reportPath.EndsWith("\\"))
 					{
-						var patchBaseName = Path.GetFileNameWithoutExtension(patchFile);
-						patchArgs[reportIdx + 1] = Path.Combine(reportDir, $"{patchBaseName}-report.json");
+						reportDir = reportPath;
 					}
+					else if (string.Equals(Path.GetExtension(reportPath), ".json", StringComparison.OrdinalIgnoreCase))
+					{
+						reportDir = Path.GetDirectoryName(reportPath);
+					}
+					else
+					{
+						reportDir = reportPath;
+					}
+
+					if (string.IsNullOrWhiteSpace(reportDir))
+						reportDir = Directory.GetCurrentDirectory();
+
+					Directory.CreateDirectory(reportDir);
+					patchArgs[reportIdx + 1] = Path.Combine(reportDir, $"{patchBaseName}-report.json");
 				}
 
 				// Run localization for this patch

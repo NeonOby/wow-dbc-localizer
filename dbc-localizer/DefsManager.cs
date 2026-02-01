@@ -49,9 +49,10 @@ namespace DbcLocalizer
 
 		private static bool DownloadAndExtractDefinitions(string targetDefinitionsPath)
 		{
+			string? tempRoot = null;
 			try
 			{
-				var tempRoot = Path.Combine(Path.GetTempPath(), "dbc-localizer", "wowdbdefs", Guid.NewGuid().ToString("N"));
+				tempRoot = Path.Combine(Path.GetTempPath(), "dbc-localizer", "wowdbdefs", Guid.NewGuid().ToString("N"));
 				Directory.CreateDirectory(tempRoot);
 
 				var tempZip = Path.Combine(tempRoot, "WoWDBDefs.zip");
@@ -83,6 +84,18 @@ namespace DbcLocalizer
 			{
 				Logger.Error($"Failed to download WoWDBDefs: {ex.Message}");
 				return false;
+			}
+			finally
+			{
+				try
+				{
+					if (!string.IsNullOrWhiteSpace(tempRoot) && Directory.Exists(tempRoot))
+						Directory.Delete(tempRoot, true);
+				}
+				catch
+				{
+					// ignore cleanup errors
+				}
 			}
 		}
 
