@@ -265,14 +265,6 @@ namespace DbcLocalizer
 					}
 				}
 			}
-			finally
-			{
-				if (!mpqArgs.KeepTemp && Directory.Exists(tempRoot))
-				{
-					try { Directory.Delete(tempRoot, recursive: true); }
-					catch { /* ignore cleanup errors */ }
-				}
-			}
 		}
 
 		private static int PerformLocalization(LocalizeMpqArgs mpqArgs, List<string> selectedDbcs, 
