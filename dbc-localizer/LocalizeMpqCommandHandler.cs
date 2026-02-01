@@ -258,6 +258,10 @@ namespace DbcLocalizer
 					{
 						if (Directory.Exists(tempRoot))
 							Directory.Delete(tempRoot, true);
+
+						var tempParent = Path.Combine(Path.GetTempPath(), "dbc-localizer");
+						if (Directory.Exists(tempParent) && !Directory.EnumerateFileSystemEntries(tempParent).Any())
+							Directory.Delete(tempParent, true);
 					}
 					catch
 					{
