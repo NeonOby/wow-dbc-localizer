@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Build Release
+        run: dotnet build dbc-localizer -c Release
+
+      - name: Create Release Package
+        shell: powershell
+        run: |
+          $version = if ("${{ github.ref }}" -match 'refs/tags/(v.*)') { $matches[1] } else { "latest" }
+          $zipName = "dbc-localizer-$version-win-x64.zip"
+          
+          # Create temporary directory for packaging
+          $stagingDir = "release-staging"
+          if (Test-Path $stagingDir) { Remove-Item -Recurse -Force $stagingDir }
+          New-Item -ItemType Directory -Path $stagingDir | Out-Null
+          
+          # Copy release artifacts
+          Copy-Item -Path "bin/Release/*" -Destination $stagingDir -Recurse -Force
+          
+          # Create ZIP file
+          $compressParams = @{
+            Path = "$stagingDir/*"
+            DestinationPath = $zipName
+            CompressionLevel = "Optimal"
+          }
+          Compress-Archive @compressParams
+          
+          # Cleanup staging directory
+          Remove-Item -Recurse -Force $stagingDir
+          
+          Write-Host "Release package created: $zipName"
+
+      - name: Get Release Info
+        id: release_info
+        shell: powershell
+        run: |
+          if ("${{ github.ref }}" -match 'refs/tags/(v.*)') {
+            $version = $matches[1]
+          } else {
+            $version = "latest"
+          }
+          
+          $zipName = "dbc-localizer-$version-win-x64.zip"
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
+          echo "zip_path=$(Get-Item $zipName | Select-Object -ExpandProperty FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.release_info.outputs.zip_name }}
+          draft: false
+          prerelease: false
+          body: |
+            ## WoW DBC Localizer Release ${{ steps.release_info.outputs.version }}
+            
+            Windows x64 Release Package
+            
+            ### Contents
+            - `dbc-localizer.exe` - Main executable (with WoW icon)
+            - `config.json` - Configuration template
+            - `lib/` - Required .NET dependencies
+            - `input/` - Input directory for DBC/MPQ files
+            - `output/` - Output directory for processed files
+            - `tools/` - Helper tools (mpqcli)
+            
+            ### Usage
+            ```
+            dbc-localizer localize <input.dbc> <output.dbc> <field_mapping.json>
+            dbc-localizer localize-mpq <input.mpq> <output.mpq> <field_mapping.json>
+            dbc-localizer scan-mpq <input.mpq>
+            ```
+            
+            For more information, see [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
