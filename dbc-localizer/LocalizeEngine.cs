@@ -9,6 +9,9 @@ namespace DbcLocalizer
 {
 	internal static class LocalizeEngine
 	{
+		private static Dictionary<string, List<SampleChange>>? _sampleChanges;
+		private static bool _trackChanges;
+
 		public static int LocalizeDbc(
 			string basePath,
 			string localePath,
@@ -19,8 +22,13 @@ namespace DbcLocalizer
 			string localeSource,
 			string targetPath,
 			Action<string>? verboseLog,
-			out LocalizeStats stats)
+			out LocalizeStats stats,
+			string fallbackLocale = "enUS",
+			bool trackChanges = false,
+			Dictionary<string, List<SampleChange>>? sampleChanges = null)
 		{
+			_trackChanges = trackChanges;
+			_sampleChanges = sampleChanges;
 			stats = new LocalizeStats();
 			var baseName = Path.GetFileNameWithoutExtension(basePath);
 
@@ -51,29 +59,108 @@ namespace DbcLocalizer
 
 			int mergedRows = 0;
 			int fieldsUpdated = 0;
-			foreach (var kvp in baseStorage.ToDictionary())
+			var testCases = new List<VerificationTestCase>();
+			int testCaseCounter = 0;
+			const int maxTestCases = 10; // Sample up to 10 test cases per category
+
+			foreach (var baseRow in baseStorage.Values)
 			{
-				var id = kvp.Key;
-				var baseRow = kvp.Value;
+				// Get the actual ID from the row instead of using row index
+				int id;
+				try
+				{
+					id = Convert.ToInt32(baseRow["ID"]);
+				}
+				catch
+				{
+					Logger.Verbose($"[!] Row without ID column - skipping");
+					continue;
+				}
 
 				if (!localeStrings.TryGetValue(id, out var strings))
 				{
-					if (TryFillMissingLocaleFromBase(
-						baseRow,
-						locFields,
-						baseStorage.AvailableColumns,
-						localeIndex,
-						baseName,
-						id,
-						localeCode,
-						targetPath,
-						verboseLog,
-						out var fallbackUpdates))
+					// Apply fallback only if fallbackLocale is not empty
+					if (!string.IsNullOrWhiteSpace(fallbackLocale))
 					{
-						mergedRows++;
-						fieldsUpdated += fallbackUpdates;
+						if (TryFillMissingLocaleFromBase(
+							baseRow,
+							locFields,
+							baseStorage.AvailableColumns,
+							localeIndex,
+							baseName,
+							id,
+							localeCode,
+							targetPath,
+							verboseLog,
+							out var fallbackUpdates))
+						{
+							mergedRows++;
+							fieldsUpdated += fallbackUpdates;
+						}
 					}
+
+					// Record test case AFTER filling: No localization available (fallback to base or empty)
+					if (testCaseCounter < maxTestCases)
+					{
+						var testCase = new VerificationTestCase
+						{
+							RecordId = id,
+							TestType = "NoLocalization",
+							ExpectedValues = new Dictionary<string, string>()
+						};
+						
+						// Capture values AFTER fallback fill (or empty if no fallback)
+						foreach (var field in locFields)
+						{
+							if (!baseStorage.AvailableColumns.Contains(field))
+								continue;
+							
+							try
+							{
+								var value = baseRow[field];
+								if (value is string[] strArray && strArray.Length > localeIndex)
+								{
+									testCase.ExpectedValues[field] = strArray[localeIndex] ?? string.Empty;
+								}
+							}
+							catch { /* skip */ }
+						}
+						
+						if (testCase.ExpectedValues.Count > 0)
+						{
+							testCases.Add(testCase);
+							testCaseCounter++;
+						}
+					}
+
 					continue;
+				}
+
+				// Count how many fields will be updated
+				int fieldsToUpdate = 0;
+				var expectedValues = new Dictionary<string, string>();
+				
+				for (int i = 0; i < locFields.Count && i < strings.Count; i++)
+				{
+					if (!baseStorage.AvailableColumns.Contains(locFields[i]))
+						continue;
+					
+					if (!string.IsNullOrWhiteSpace(strings[i]))
+					{
+						fieldsToUpdate++;
+						expectedValues[locFields[i]] = strings[i];
+					}
+				}
+
+				// Record test case: Multi-column localization
+				if (fieldsToUpdate >= 2 && testCases.Count(tc => tc.TestType == "MultiColumn") < maxTestCases)
+				{
+					testCases.Add(new VerificationTestCase
+					{
+						RecordId = id,
+						TestType = "MultiColumn",
+						ExpectedValues = expectedValues
+					});
 				}
 
 				bool changed = LocalizeRow(
@@ -96,6 +183,7 @@ namespace DbcLocalizer
 
 			Logger.Info($"[*] Rows localized: {mergedRows}");
 			Logger.Info($"[*] Fields updated: {fieldsUpdated}");
+			Logger.Info($"[*] Verification test cases: {testCases.Count}");
 
 			// Ensure output directory exists
 			var outputDir = Path.GetDirectoryName(outputPath);
@@ -107,6 +195,7 @@ namespace DbcLocalizer
 
 			stats.RowsMerged = mergedRows;
 			stats.FieldUpdates = fieldsUpdated;
+			stats.TestCases = testCases;
 
 			return 0;
 		}
@@ -145,10 +234,30 @@ namespace DbcLocalizer
 					{
 						if (localeIndex >= 0 && localeIndex < arr.Length)
 						{
+							string oldValue = arr[localeIndex];
 							arr[localeIndex] = text;
 							baseRow[field] = arr;
 							changed = true;
 							fieldUpdates++;
+
+							// Track sample changes if enabled
+							if (_trackChanges && _sampleChanges != null)
+							{
+								if (!_sampleChanges.ContainsKey(tableName))
+									_sampleChanges[tableName] = new();
+
+								if (_sampleChanges[tableName].Count < 10)
+								{
+									_sampleChanges[tableName].Add(new SampleChange
+									{
+										ID = id,
+										Field = field,
+										OldValue = oldValue,
+										NewValue = text
+									});
+								}
+							}
+
 							verboseLog?.Invoke($"copied {localeCode} from {localeSource} to {targetPath} {tableName}.dbc ID {id} field {field}");
 
 							var maskField = field + "_mask";
@@ -164,9 +273,29 @@ namespace DbcLocalizer
 					}
 					else if (value is string)
 					{
+						string oldValue = (string)value;
 						baseRow[field] = text;
 						changed = true;
 						fieldUpdates++;
+
+						// Track sample changes if enabled
+						if (_trackChanges && _sampleChanges != null)
+						{
+							if (!_sampleChanges.ContainsKey(tableName))
+								_sampleChanges[tableName] = new();
+
+							if (_sampleChanges[tableName].Count < 10)
+							{
+								_sampleChanges[tableName].Add(new SampleChange
+								{
+									ID = id,
+									Field = field,
+									OldValue = oldValue,
+									NewValue = text
+								});
+							}
+						}
+
 						verboseLog?.Invoke($"copied {localeCode} from {localeSource} to {targetPath} {tableName}.dbc ID {id} field {field}");
 					}
 				}
@@ -218,7 +347,7 @@ namespace DbcLocalizer
 						baseRow[field] = arr;
 						changed = true;
 						fieldUpdates++;
-						verboseLog?.Invoke($"filled missing {localeCode} from base to {targetPath} {tableName}.dbc ID {id} field {field}");
+
 
 						var maskField = field + "_mask";
 						if (availableColumns.Contains(maskField))
@@ -363,6 +492,116 @@ namespace DbcLocalizer
 				end++;
 
 			return System.Text.Encoding.UTF8.GetString(data, pos, end - pos);
+		}
+
+		public static VerificationResult VerifyLocalizedDbc(
+			string outputPath,
+			string defsPath,
+			string build,
+			string localeCode,
+			List<VerificationTestCase> testCases)
+		{
+			var result = new VerificationResult
+			{
+				TableName = Path.GetFileNameWithoutExtension(outputPath),
+				TestCasesTotal = testCases.Count
+			};
+
+			if (testCases.Count == 0)
+			{
+				return result;
+			}
+
+			try
+			{
+				var dbdProvider = new FilesystemDBDProvider(defsPath);
+				var dbcProvider = new FilesystemDBCProvider(Path.GetDirectoryName(outputPath) ?? ".");
+				var dbcd = new DBCD.DBCD(dbcProvider, dbdProvider);
+				
+				var tableName = Path.GetFileNameWithoutExtension(outputPath);
+				var storage = dbcd.Load(tableName, build, DBCD.Locale.None);
+
+				var localeIndex = Helpers.GetLocaleIndex(localeCode, build);
+
+				foreach (var testCase in testCases)
+				{
+					bool passed = true;
+					var failureReasons = new List<string>();
+
+					// Find the record by ID
+					DBCDRow? record = null;
+					foreach (var row in storage.Values)
+					{
+						try
+						{
+							var rowId = Convert.ToInt32(row["ID"]);
+							if (rowId == testCase.RecordId)
+							{
+								record = row;
+								break;
+							}
+						}
+						catch { /* continue */ }
+					}
+
+					if (record == null)
+					{
+						passed = false;
+						failureReasons.Add($"Record ID {testCase.RecordId} not found in output");
+					}
+					else
+					{
+						// Verify each expected field value
+						foreach (var kvp in testCase.ExpectedValues)
+						{
+							var fieldName = kvp.Key;
+							var expectedValue = kvp.Value;
+
+							try
+							{
+								var actualValue = record[fieldName];
+								if (actualValue is string[] strArray && strArray.Length > localeIndex)
+								{
+									var actualText = strArray[localeIndex] ?? string.Empty;
+									
+									if (!string.Equals(actualText, expectedValue, StringComparison.Ordinal))
+									{
+										passed = false;
+										failureReasons.Add($"ID {testCase.RecordId}, Field '{fieldName}': Expected '{expectedValue}', got '{actualText}'");
+									}
+								}
+								else
+								{
+									passed = false;
+									failureReasons.Add($"ID {testCase.RecordId}, Field '{fieldName}': Not a locstring or wrong format");
+								}
+							}
+							catch (Exception ex)
+							{
+								passed = false;
+								failureReasons.Add($"ID {testCase.RecordId}, Field '{fieldName}': {ex.Message}");
+							}
+						}
+					}
+
+					if (passed)
+					{
+						result.TestCasesPassed++;
+					}
+					else
+					{
+						result.TestCasesFailed++;
+						result.FailureDetails.AddRange(failureReasons);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				result.TestCasesFailed = testCases.Count;
+				result.FailureDetails.Add($"Verification error: {ex.Message}");
+			}
+
+			return result;
 		}
 	}
 }

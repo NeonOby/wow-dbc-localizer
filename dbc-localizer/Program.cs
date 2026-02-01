@@ -15,19 +15,21 @@ namespace DbcLocalizer
 
 			var exitCode = 0;
 
-			// If no arguments, try to load from config file for automatic mode
-			if (args.Length == 0)
+			// If no arguments or only flags, try to load from config file for automatic mode
+			if (args.Length == 0 || (args.Length > 0 && args[0].StartsWith("--")))
 			{
 				if (File.Exists(DefaultConfigFile))
 				{
-					Logger.Info("[*] No arguments provided. Loading from config.json...");
-					args = ConfigLoader.LoadConfigAsArgs(DefaultConfigFile);
-					if (args.Length == 0)
+					Logger.Info("[*] Loading from config.json...");
+					var configArgs = ConfigLoader.LoadConfigAsArgs(DefaultConfigFile);
+					if (configArgs.Length == 0)
 					{
 						UsageWriter.PrintUsage();
 						exitCode = 1;
 						return MaybePauseOnError(exitCode);
 					}
+					// Append remaining arguments (like --verbose) to config arguments
+					args = configArgs.Concat(args).ToArray();
 				}
 				else
 				{
@@ -40,8 +42,7 @@ namespace DbcLocalizer
 			if (args.Contains("--help") || args.Contains("-h"))
 			{
 				UsageWriter.PrintUsage();
-				exitCode = 1;
-				return MaybePauseOnError(exitCode);
+				return MaybePauseOnError(0);
 			}
 
 			try
@@ -54,6 +55,7 @@ namespace DbcLocalizer
 					"localize" => LocalizeCommandHandler.Execute(cmdArgs),
 					"localize-mpq" => LocalizeMpqCommandHandler.Execute(cmdArgs),
 					"scan-mpq" => ScanMpqCommandHandler.Execute(cmdArgs),
+					"verify-dbc" => VerifyDbcCommandHandler.Execute(cmdArgs),
 
 					_ => UnknownCommand(command)
 				};

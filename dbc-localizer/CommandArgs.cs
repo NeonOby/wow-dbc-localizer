@@ -57,6 +57,7 @@ namespace DbcLocalizer
 		public bool IsMultiPatchDir { get; set; }
 		public bool IsMultiLocalePerPatch { get; set; }
 		public bool ClearOutput { get; set; }
+		public string FallbackLocale { get; set; } = "enUS"; // Default fallback to enUS, empty = no fallback
 
 		public bool IsValid => !string.IsNullOrWhiteSpace(PatchMpq) && 
 		                       !string.IsNullOrWhiteSpace(DefsPath) && 
@@ -117,7 +118,8 @@ namespace DbcLocalizer
 				Interactive = args.Contains("--select", StringComparer.OrdinalIgnoreCase),
 				IsMultiPatchDir = !string.IsNullOrWhiteSpace(multiPatchDir),
 				IsMultiLocalePerPatch = args.Contains("--cross-product", StringComparer.OrdinalIgnoreCase),
-				ClearOutput = args.Contains("--clear-output", StringComparer.OrdinalIgnoreCase)
+				ClearOutput = args.Contains("--clear-output", StringComparer.OrdinalIgnoreCase),
+				FallbackLocale = Helpers.GetArg(args, "--fallback-locale") ?? "enUS"
 			};
 		}
 	}

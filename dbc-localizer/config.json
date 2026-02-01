@@ -7,5 +7,6 @@
   "auto": true,
   "verbose": false,
   "report": "output/{patch}-report.json",
-  "clear-output": true
+  "clear-output": true,
+  "fallback-locale": "enUS"
 }

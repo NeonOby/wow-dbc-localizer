@@ -19,6 +19,9 @@
         <li>✓ <strong>JSON reports</strong> - Detailed localization statistics and warnings</li>
         <li>✓ <strong>Config file support</strong> - Fully automated via <code>config.json</code></li>
         <li>✓ <strong>WDBX definitions</strong> - Build-specific DBC field mappings (configurable)</li>
+        <li>✓ <strong>Automatic Verification</strong> - Validates merge correctness with test cases</li>
+        <li>✓ <strong>DBC Inspection Tool</strong> - Debug and verify DBC content in MPQs</li>
+        <li>✓ <strong>Configurable Fallback</strong> - Use enUS or custom locale for missing translations</li>
       </ul>
     </td>
   </tr>
@@ -136,7 +139,8 @@ dbc-localizer localize-mpq \
   "auto": true,
   "verbose": false,
   "report": "output/{patch}-report.json",
-  "clear-output": true
+  "clear-output": true,
+  "fallback-locale": "enUS"
 }
 ```
 
@@ -144,7 +148,15 @@ dbc-localizer localize-mpq \
 Set `clear-output` to `true` to delete existing `*.mpq` and `*.json` files in the output directory before processing.
 
 ### Missing Locale Entries
-If a locale MPQ lacks a row for a custom record, the tool now fills the missing locale string from the base row (typically enUS) so custom content remains visible.
+If a locale MPQ lacks a row for a custom record, the tool fills the missing locale string from the fallback locale (default: enUS).
+
+### Fallback Locale Configuration
+Set `fallback-locale` to control behavior for missing translations:
+- `"enUS"` (default): Use English text as fallback
+- `"frFR"` or other locale code: Use that locale as fallback
+- `""` (empty string): Disable fallback, leave fields empty
+
+This can also be configured via `--fallback-locale` command line argument.
 
 ## Commands
 
@@ -163,8 +175,11 @@ Localize DBC files from MPQ archives (main command).
 ```bash
 dbc-localizer localize-mpq \
   --patch <mpq> --locale-mpq <mpq> \
-  --defs <path> --output <mpq>
+  --defs <path> --output <mpq> \
+  --fallback-locale enUS
 ```
+
+**Fallback Locale**: Use `--fallback-locale <code>` to specify a fallback locale for missing translations. Default is `enUS`. Set to empty string `""` to disable fallback.
 
 ### scan-mpq
 List all localizable DBCs in MPQ archives.
@@ -175,25 +190,73 @@ dbc-localizer scan-mpq \
   --defs <path>
 ```
 
+### verify-dbc
+Inspect and verify DBC content in MPQ archives for debugging.
+
+```bash
+# Search for a specific record ID
+dbc-localizer verify-dbc \
+  --mpq <mpq> \
+  --dbc "DBFilesClient\Spell.dbc" \
+  --id 81423
+
+# Show all record IDs grouped by thousands
+dbc-localizer verify-dbc \
+  --mpq <mpq> \
+  --dbc "DBFilesClient\Spell.dbc" \
+  --show-all-ids
+```
+
+This command is useful for:
+- Verifying that specific records exist in the output MPQ
+- Debugging missing or corrupted records
+- Inspecting the ID range of custom content
+- Validating localization results
+
 ## How It Works
 
 1. **Scan Phase**: Identify localizable DBCs (containing locstring fields)
 2. **Extract Phase**: Extract DBC files from both patch and locale MPQs
 3. **Localization Phase**: Combine locale texts with base patch data using WDBX definitions
-4. **Update Phase**: Remove old DBCs and add localized versions to output MPQ
-5. **Report Phase**: Generate JSON report with statistics
+4. **Verification Phase**: Validate merge correctness with automatically collected test cases
+5. **Update Phase**: Remove old DBCs and add localized versions to output MPQ
+6. **Report Phase**: Generate JSON report with statistics
+
+### Automatic Verification System
+
+During the localization phase, the tool automatically collects test cases for validation:
+
+- **NoLocalization Cases**: Records where no German translation was found (should use fallback)
+- **MultiColumn Cases**: Records where multiple locale columns were localized
+
+After merging, the tool validates that:
+- Missing translations correctly use the fallback locale (if enabled)
+- All localized text was correctly written to the output DBC
+- No text corruption occurred during the merge
+
+Example verification output:
+```
+[VERIFY] Running verification tests for Spell...
+[VERIFY] Collected test cases: NoLocalization=5, MultiColumn=8
+[VERIFY] Tests: 13, Passed: 13, Failed: 0
+[VERIFY] OK - All tests passed
+```
+
+If verification fails, the tool provides detailed information about which records failed and what was expected vs. actual.
 
 ## Architecture
 
 ### Key Classes
 
 - **Program.cs** - CLI entry point and command routing
-- **CommandArgs.cs** - Type-safe argument parsing (LocalizeArgs, LocalizeMpqArgs, ScanMpqArgs)
+- **CommandArgs.cs** - Type-safe argument parsing (LocalizeArgs, LocalizeMpqArgs, ScanMpqArgs, VerifyDbcArgs)
 - **LocalizeMpqCommandHandler.cs** - Main localization orchestration with multi-patch support
-- **LocalizeEngine.cs** - Core DBC localization logic
+- **LocalizeEngine.cs** - Core DBC localization logic with automatic verification system
+- **VerifyDbcCommandHandler.cs** - DBC inspection and debugging tool
 - **DbcScanner.cs** - Localization candidate detection
 - **MpqHelper.cs** - MPQ file operations via mpqcli
 - **ConfigLoader.cs** - config.json parsing
+- **Models.cs** - Data structures (VerificationTestCase, VerificationResult, LocalizeStats)
 
 ### Dependencies
 

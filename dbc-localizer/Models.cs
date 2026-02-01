@@ -12,6 +12,31 @@ namespace DbcLocalizer
 	{
 		public int RowsMerged { get; set; }
 		public int FieldUpdates { get; set; }
+		public List<VerificationTestCase> TestCases { get; set; } = new();
+	}
+
+	internal sealed class SampleChange
+	{
+		public int ID { get; set; }
+		public string Field { get; set; } = string.Empty;
+		public string OldValue { get; set; } = string.Empty;
+		public string NewValue { get; set; } = string.Empty;
+	}
+
+	internal sealed class VerificationTestCase
+	{
+		public int RecordId { get; set; }
+		public string TestType { get; set; } = string.Empty;
+		public Dictionary<string, string> ExpectedValues { get; set; } = new();
+	}
+
+	internal sealed class VerificationResult
+	{
+		public string TableName { get; set; } = string.Empty;
+		public int TestCasesTotal { get; set; }
+		public int TestCasesPassed { get; set; }
+		public int TestCasesFailed { get; set; }
+		public List<string> FailureDetails { get; set; } = new();
 	}
 
 	internal sealed class LocalizeReport
@@ -28,6 +53,7 @@ namespace DbcLocalizer
 		public int TotalRowsMerged { get; set; }
 		public int TotalFieldsUpdated { get; set; }
 		public List<LocaleLocalizeResult> PerLocale { get; set; } = new();
+		public List<VerificationResult> VerificationResults { get; set; } = new();
 	}
 
 	internal sealed class LocaleLocalizeResult
@@ -37,5 +63,6 @@ namespace DbcLocalizer
 		public int TablesMerged { get; set; }
 		public int RowsMerged { get; set; }
 		public int FieldsUpdated { get; set; }
+		public Dictionary<string, List<SampleChange>> SampleChanges { get; set; } = new();
 	}
 }

@@ -28,18 +28,25 @@ namespace DbcLocalizer
 		public static void Info(string message)
 		{
 			if (_logLevel >= LogLevel.Info)
+			{
 				Console.WriteLine(message);
+				Console.Out.Flush();
+			}
 		}
 
 		public static void Verbose(string message)
 		{
 			if (_logLevel >= LogLevel.Verbose)
+			{
 				Console.WriteLine(message);
+				Console.Out.Flush();
+			}
 		}
 
 		public static void Error(string message)
 		{
 			Console.Error.WriteLine($"ERROR: {message}");
+			Console.Error.Flush();
 		}
 	}
 }

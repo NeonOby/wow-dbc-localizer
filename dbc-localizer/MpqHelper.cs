@@ -41,7 +41,42 @@ namespace DbcLocalizer
 			}
 			else
 			{
-				RunProcess(mpqcliPath, $"add \"{localPath}\" \"{mpqPath}\" --path \"{archivePath}\"");
+				// FIX: mpqcli appends the local filename to the --path argument
+				// We need to rename the file to match the archive basename and use parent directory
+				var archiveFileName = Path.GetFileName(archivePath);
+				var archiveDir = Path.GetDirectoryName(archivePath);
+				
+				// Create temp directory and copy with correct name
+				var tempDir = Path.Combine(Path.GetTempPath(), "dbc-localizer", "mpq-add", Guid.NewGuid().ToString("N"));
+				Directory.CreateDirectory(tempDir);
+				var renamedPath = Path.Combine(tempDir, archiveFileName);
+				
+				try
+				{
+					File.Copy(localPath, renamedPath, true);
+					
+					// Use parent directory as --path so mpqcli appends the filename correctly
+					if (string.IsNullOrWhiteSpace(archiveDir))
+					{
+						RunProcess(mpqcliPath, $"add \"{renamedPath}\" \"{mpqPath}\"");
+					}
+					else
+					{
+						RunProcess(mpqcliPath, $"add \"{renamedPath}\" \"{mpqPath}\" --path \"{archiveDir}\"");
+					}
+				}
+				finally
+				{
+					// Cleanup
+					try
+					{
+						if (File.Exists(renamedPath))
+							File.Delete(renamedPath);
+						if (Directory.Exists(tempDir))
+							Directory.Delete(tempDir, true);
+					}
+					catch { /* ignore cleanup errors */ }
+				}
 			}
 		}
 

@@ -120,6 +120,15 @@ namespace DbcLocalizer
 				if (root.TryGetProperty("clear-output", out var clearOutput) && clearOutput.ValueKind == JsonValueKind.True)
 					args.Add("--clear-output");
 
+				if (root.TryGetProperty("fallback-locale", out var fallbackLocale) && fallbackLocale.ValueKind == JsonValueKind.String)
+				{
+					var fallbackValue = fallbackLocale.GetString();
+					if (!string.IsNullOrWhiteSpace(fallbackValue))
+						args.AddRange(new[] { "--fallback-locale", fallbackValue });
+					else
+						args.AddRange(new[] { "--fallback-locale", "" }); // Empty means no fallback
+				}
+
 				return args.ToArray();
 			}
 			catch (Exception ex)
