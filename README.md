@@ -1,18 +1,27 @@
 # DBC-Localizer
 
-![DBC-Localizer Icon](dbc-localizer/icons/wow-style-icon--welt-als-hintegrund--zahnrad-umran.png)
-
-**Automated German text localization for World of Warcraft MPQ files (build configurable)**
-
-A C# tool that extracts German locale data from `locale-*.MPQ` and localizes patch MPQs using build-specific WDBX definitions. Build/version is configurable via CLI or `config.json`.
-
-## Features
-- ✓ **Fast C# implementation** - High-performance DBC processing
-- ✓ **Batch processing** - Localize multiple patches/locales at once
-- ✓ **Multiple modes** - Auto-detect, interactive selection, or explicit DBC lists
-- ✓ **JSON reports** - Detailed localization statistics and warnings
-- ✓ **Config file support** - Fully automated via `config.json`
-- ✓ **WDBX definitions** - Build-specific DBC field mappings (configurable)
+<table>
+  <tr>
+    <td width="420" valign="top">
+      <img src="dbc-localizer/icons/wow-style-icon--welt-als-hintegrund--zahnrad-umran.png" width="420" alt="DBC-Localizer Icon" />
+    </td>
+    <td valign="top">
+      <strong>Automated German text localization for World of Warcraft MPQ files (build configurable)</strong>
+      <br />
+      A C# tool that extracts German locale data from <code>locale-*.MPQ</code> and localizes patch MPQs using build-specific WDBX definitions. Build/version is configurable via CLI or <code>config.json</code>.
+      <br /><br />
+      <strong>Features</strong>
+      <ul>
+        <li>✓ <strong>Fast C# implementation</strong> - High-performance DBC processing</li>
+        <li>✓ <strong>Batch processing</strong> - Localize multiple patches/locales at once</li>
+        <li>✓ <strong>Multiple modes</strong> - Auto-detect, interactive selection, or explicit DBC lists</li>
+        <li>✓ <strong>JSON reports</strong> - Detailed localization statistics and warnings</li>
+        <li>✓ <strong>Config file support</strong> - Fully automated via <code>config.json</code></li>
+        <li>✓ <strong>WDBX definitions</strong> - Build-specific DBC field mappings (configurable)</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
 ## Project Structure
 
