@@ -218,24 +218,24 @@ namespace DbcLocalizer
 							if (localeIndex < 0 || localeIndex >= arr.Length)
 								continue;
 
-						// Get locale row using ID index (O(1) lookup instead of O(n) iteration)
-						DBCDRow? localeRow = null;
-						if (localeIdIndices.ContainsKey(localeCode) && localeIdIndices[localeCode].TryGetValue(id, out var row))
-						{
-							localeRow = row;
-						}
-
-						if (localeRow == null)
-						{
-							// Row not in locale DBC - apply fallback if available
-							if (!string.IsNullOrWhiteSpace(arr[fallbackIndex]))
+							// Get locale row using ID index (O(1) lookup instead of O(n) iteration)
+							DBCDRow? localeRow = null;
+							if (localeIdIndices.ContainsKey(localeCode) && localeIdIndices[localeCode].TryGetValue(id, out var row))
 							{
-								arr[localeIndex] = arr[fallbackIndex];
+								localeRow = row;
 							}
-							continue;
-						}
-						
-						// NOTE: In locale-specific DBC, the localized text is always at index 0
+
+							if (localeRow == null)
+							{
+								// Row not in locale DBC - apply fallback if available
+								if (!string.IsNullOrWhiteSpace(arr[fallbackIndex]))
+								{
+									arr[localeIndex] = arr[fallbackIndex];
+								}
+								continue;
+							}
+							
+							// NOTE: In locale-specific DBC, the localized text is always at index 0
 							// because the DBC was loaded with a specific locale (e.g., DBCD.Locale.DeDE)
 							string locStr = string.Empty;
 							try
@@ -245,45 +245,45 @@ namespace DbcLocalizer
 								{
 									locStr = locArray[0] ?? string.Empty; // Read from index 0 of locale DBC
 								
-								// Debug: Show what's actually in the locale DBC for first few IDs
-								if (id <= 15 && field == "Name_lang")
+									// Debug: Show what's actually in the locale DBC for first few IDs
+									if (id <= 15 && field == "Name_lang")
+									{
+										Logger.Verbose($"[LOCALE DBC] ID={id}, Field={field}, LocaleCode={localeCode}, Value='{locStr}'");
+									}
+								}
+								else if (locValue is string str)
 								{
-									Logger.Verbose($"[LOCALE DBC] ID={id}, Field={field}, LocaleCode={localeCode}, Value='{locStr}'");
+									locStr = str ?? string.Empty;
 								}
 							}
-							else if (locValue is string str)
+							catch
 							{
-								locStr = str ?? string.Empty;
+								continue;
 							}
-						}
-						catch
-						{
-							continue;
-						}
 
-						// Apply to patch row if not empty
-						if (!string.IsNullOrWhiteSpace(locStr))
-						{
-							// Capture values for sample changes
-							string valueEnUS = arr[fallbackIndex] ?? string.Empty;
-							string valueLocaleBefore = arr[localeIndex] ?? string.Empty;
+							// Apply to patch row if not empty
+							if (!string.IsNullOrWhiteSpace(locStr))
+							{
+								// Capture values for sample changes
+								string valueEnUS = arr[fallbackIndex] ?? string.Empty;
+								string valueLocaleBefore = arr[localeIndex] ?? string.Empty;
 
-// Apply localized string
-arr[localeIndex] = locStr;
-fieldsUpdated++;
+								// Apply localized string
+								arr[localeIndex] = locStr;
+								fieldsUpdated++;
 
-// Update stats
-if (localeStats.ContainsKey(localeCode))
-{
-localeStats[localeCode].FieldUpdates++;
-updatedRows[localeCode].Add(id);
-}
+								// Update stats
+								if (localeStats.ContainsKey(localeCode))
+								{
+								localeStats[localeCode].FieldUpdates++;
+								updatedRows[localeCode].Add(id);
+								}
 
-// Track sample change (max 10 samples per table, only actual changes)
-if (trackSampleChanges && sampleChanges != null && sampleChanges.ContainsKey(tableName))
-{
-var list = sampleChanges[tableName];
-// Only track if value actually changed from what was in locale column
+								// Track sample change (max 10 samples per table, only actual changes)
+								if (trackSampleChanges && sampleChanges != null && sampleChanges.ContainsKey(tableName))
+								{
+									var list = sampleChanges[tableName];
+									// Only track if value actually changed from what was in locale column
 									if (list.Count < 10 && !string.Equals(valueLocaleBefore, locStr, StringComparison.Ordinal))
 									{
 										list.Add(new SampleChange

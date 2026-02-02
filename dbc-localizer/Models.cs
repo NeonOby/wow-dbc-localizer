@@ -39,31 +39,4 @@ namespace DbcLocalizer
 		public int TestCasesFailed { get; set; }
 		public List<string> FailureDetails { get; set; } = new();
 	}
-
-	internal sealed class LocalizeReport
-	{
-		public string TimestampUtc { get; set; } = string.Empty;
-		public string Build { get; set; } = string.Empty;
-		public string PatchMpq { get; set; } = string.Empty;
-		public string OutputMpq { get; set; } = string.Empty;
-		public List<string> LocaleMpqs { get; set; } = new();
-		public List<string> Languages { get; set; } = new();
-		public List<string> SelectedDbcs { get; set; } = new();
-		public List<string> Warnings { get; set; } = new();
-		public int TotalTablesMerged { get; set; }
-		public int TotalRowsMerged { get; set; }
-		public int TotalFieldsUpdated { get; set; }
-		public List<LocaleLocalizeResult> PerLocale { get; set; } = new();
-		public List<VerificationResult> VerificationResults { get; set; } = new();
-	}
-
-	internal sealed class LocaleLocalizeResult
-	{
-		public string LocaleMpq { get; set; } = string.Empty;
-		public string Language { get; set; } = string.Empty;
-		public int TablesMerged { get; set; }
-		public int RowsMerged { get; set; }
-		public int FieldsUpdated { get; set; }
-		public Dictionary<string, List<SampleChange>> SampleChanges { get; set; } = new();
-	}
 }

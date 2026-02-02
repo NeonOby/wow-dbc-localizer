@@ -31,19 +31,20 @@ namespace DbcLocalizer
 
 			foreach (var dbcPath in patchDbcs.OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
 			{
-				bool presentInAllLocales = true;
+				// Check if DBC is missing from ALL locales
+				int missingCount = 0;
 				for (int i = 0; i < localeDbcsList.Count; i++)
 				{
 					if (!localeDbcsList[i].Contains(dbcPath))
-					{
-						warnings.Add($"Locale MPQ missing DBC: {dbcPath} (locale index {i})");
-						presentInAllLocales = false;
-						break;
-					}
+						missingCount++;
 				}
 
-				if (!presentInAllLocales)
+				// Only warn if missing from all locales
+				if (missingCount == localeDbcsList.Count && localeDbcsList.Count > 0)
+				{
+					warnings.Add($"Locale MPQ missing DBC: {dbcPath} (all locales)");
 					continue;
+				}
 
 				var tableName = Path.GetFileNameWithoutExtension(dbcPath);
 				try
@@ -91,19 +92,23 @@ namespace DbcLocalizer
 					continue;
 				}
 
-				bool missingLocale = false;
+				// Check if DBC is missing from ALL locales
+				int missingCount = 0;
 				for (int i = 0; i < localeDbcsList.Count; i++)
 				{
 					if (!localeDbcsList[i].Contains(dbc))
-					{
-						warnings.Add($"Locale MPQ missing DBC: {dbc} (locale index {i})");
-						missingLocale = true;
-						break;
-					}
+						missingCount++;
 				}
 
-				if (!missingLocale)
+				// Only warn and skip if missing from all locales
+				if (missingCount == localeDbcsList.Count && localeDbcsList.Count > 0)
+				{
+					warnings.Add($"Locale MPQ missing DBC: {dbc} (all locales)");
+				}
+				else
+				{
 					valid.Add(dbc);
+				}
 			}
 
 			return valid.Distinct(StringComparer.OrdinalIgnoreCase).ToList();

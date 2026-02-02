@@ -78,5 +78,14 @@ namespace DbcLocalizer
 			}
 			return list;
 		}
+
+		public static bool IsDirectory(this string path)
+		{
+			if (string.IsNullOrEmpty(path))
+				return false;
+
+			var trimmed = path.TrimEnd('/', '\\');
+			return Directory.Exists(trimmed);
+		}
 	}
 }

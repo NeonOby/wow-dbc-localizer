@@ -29,6 +29,9 @@ namespace DbcLocalizer
 			if (!File.Exists(mpqPath))
 				return Fail($"MPQ file not found: {mpqPath}");
 
+			if (string.IsNullOrEmpty(dbcPath))
+				return Fail($"DBC file not specified");
+
 			if (string.IsNullOrWhiteSpace(defsPath))
 				defsPath = DefsManager.GetDefaultDefsPath();
 

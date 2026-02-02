@@ -44,18 +44,10 @@ namespace DbcLocalizer
 		public List<string> LocaleMpqs { get; set; } = new();
 		public string DefsPath { get; set; } = string.Empty;
 		public string OutputMpq { get; set; } = string.Empty;
-		public string DbcRelPath { get; set; } = string.Empty;
-		public List<string> DbcList { get; set; } = new();
-		public string Build { get; set; } = string.Empty;
-		public string LocaleCode { get; set; } = string.Empty;
+		public string WoWBuild { get; set; } = string.Empty;
 		public List<string> Languages { get; set; } = new();
 		public string MpqCliPath { get; set; } = string.Empty;
 		public bool KeepTemp { get; set; }
-		public bool Interactive { get; set; }
-		public bool AutoAll { get; set; }
-		public string ReportPath { get; set; } = string.Empty;
-		public bool IsMultiPatchDir { get; set; }
-		public bool IsMultiLocalePerPatch { get; set; }
 		public bool ClearOutput { get; set; }
 		public string FallbackLocale { get; set; } = "enUS"; // Default fallback to enUS, empty = no fallback
 
@@ -71,7 +63,6 @@ namespace DbcLocalizer
 			var dbcArg = Helpers.GetArg(args, "--dbc");
 			var dbcListArg = Helpers.GetArg(args, "--dbc-list");
 			var langsArg = Helpers.GetArg(args, "--langs");
-			var multiPatchDir = Helpers.GetArg(args, "--multi-patch-dir");
 
 			var localeMpqs = new List<string>();
 			if (!string.IsNullOrWhiteSpace(localeMpqsArg))
@@ -95,9 +86,6 @@ namespace DbcLocalizer
 				languages = Helpers.ParseDbcList(langsArg);
 			}
 
-			var localeCode = Helpers.GetArg(args, "--lang") ?? "deDE";
-			if (languages.Count == 0)
-				languages.Add(localeCode);
 
 			return new LocalizeMpqArgs
 			{
@@ -106,18 +94,10 @@ namespace DbcLocalizer
 				LocaleMpqs = localeMpqs,
 				DefsPath = Helpers.GetArg(args, "--defs") ?? string.Empty,
 				OutputMpq = Helpers.GetArg(args, "--output") ?? string.Empty,
-				DbcRelPath = dbcArg ?? string.Empty,
-				DbcList = dbcList,
-				Build = Helpers.GetArg(args, "--build") ?? defaultBuild,
-				LocaleCode = localeCode,
+				WoWBuild = Helpers.GetArg(args, "--build") ?? defaultBuild,
 				Languages = languages,
 				MpqCliPath = Helpers.GetArg(args, "--mpqcli") ?? MpqHelper.GetDefaultMpqCliPath(),
 				KeepTemp = args.Contains("--keep-temp", StringComparer.OrdinalIgnoreCase),
-				ReportPath = Helpers.GetArg(args, "--report") ?? string.Empty,
-				AutoAll = args.Contains("--auto", StringComparer.OrdinalIgnoreCase) || args.Contains("--all", StringComparer.OrdinalIgnoreCase),
-				Interactive = args.Contains("--select", StringComparer.OrdinalIgnoreCase),
-				IsMultiPatchDir = !string.IsNullOrWhiteSpace(multiPatchDir),
-				IsMultiLocalePerPatch = args.Contains("--cross-product", StringComparer.OrdinalIgnoreCase),
 				ClearOutput = args.Contains("--clear-output", StringComparer.OrdinalIgnoreCase),
 				FallbackLocale = Helpers.GetArg(args, "--fallback-locale") ?? "enUS"
 			};

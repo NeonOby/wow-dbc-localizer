@@ -39,9 +39,10 @@ namespace DbcLocalizer
 			// Set defaults if no arguments provided
 			if (args.Length == 0)
 			{
-				mpqArgs.PatchMpq = Path.Combine(Directory.GetCurrentDirectory(), "input", "patch");
-				mpqArgs.OutputMpq = Path.Combine(Directory.GetCurrentDirectory(), "output");
-				mpqArgs.IsMultiPatchDir = true;
+				// Use application directory, not current working directory
+				var baseDir = AppContext.BaseDirectory;
+				mpqArgs.PatchMpq = Path.Combine(baseDir, "input", "patch");
+				mpqArgs.OutputMpq = Path.Combine(baseDir, "output");
 				mpqArgs.ClearOutput = true; // Default to clearing output when running without args
 			}
 			
@@ -51,7 +52,7 @@ namespace DbcLocalizer
 			// Auto-detect locale MPQs if not provided
 			if (mpqArgs.LocaleMpqs.Count == 0)
 			{
-				var localeDir = Path.Combine(Directory.GetCurrentDirectory(), "input", "locale");
+				var localeDir = Path.Combine(AppContext.BaseDirectory, "input", "locale");
 				if (Directory.Exists(localeDir))
 				{
 					// Look for both patch-*locale*.mpq and locale-*.mpq files
@@ -87,11 +88,8 @@ namespace DbcLocalizer
 			if (mpqArgs.ClearOutput)
 			{
 				var outputDir = mpqArgs.OutputMpq;
-				if (!outputDir.EndsWith("/") && !outputDir.EndsWith("\\") && !Directory.Exists(outputDir))
-				{
-					// OutputMpq is a file path, get directory
+				if(!outputDir.IsDirectory())
 					outputDir = Path.GetDirectoryName(outputDir) ?? outputDir;
-				}
 
 				if (Directory.Exists(outputDir))
 				{
@@ -111,7 +109,7 @@ namespace DbcLocalizer
 			}
 
 			// If multi-patch directory mode, resolve multiple patches
-			if (mpqArgs.IsMultiPatchDir && Directory.Exists(mpqArgs.PatchMpq))
+			if (mpqArgs.PatchMpq.IsDirectory())
 			{
 				var patchFiles = Directory.GetFiles(mpqArgs.PatchMpq, "patch-*.mpq", SearchOption.TopDirectoryOnly);
 				if (patchFiles.Length == 0)
@@ -132,10 +130,9 @@ namespace DbcLocalizer
 						Languages = new List<string>(mpqArgs.Languages),
 						DefsPath = mpqArgs.DefsPath,
 						OutputMpq = mpqArgs.OutputMpq,
-						Build = mpqArgs.Build,
+						WoWBuild = mpqArgs.WoWBuild,
 						MpqCliPath = mpqArgs.MpqCliPath,
-						KeepTemp = mpqArgs.KeepTemp,
-						ReportPath = mpqArgs.ReportPath
+						KeepTemp = mpqArgs.KeepTemp
 					};
 
 					int returnCode = ExecuteSinglePatchFile(singlePatchArgs);
@@ -166,20 +163,34 @@ namespace DbcLocalizer
 					return Fail($"Locale MPQ not found: {mpq}");
 			}
 
+			// Ensure Languages aligns with LocaleMpqs
+			if (mpqArgs.Languages.Count != mpqArgs.LocaleMpqs.Count)
+			{
+				Logger.Verbose($"[!] Warning: Languages count ({mpqArgs.Languages.Count}) does not match LocaleMpqs count ({mpqArgs.LocaleMpqs.Count}). Rebuilding Languages from LocaleMpqs.");
+				mpqArgs.Languages = mpqArgs.LocaleMpqs
+					.Select(mpq => Path.GetFileNameWithoutExtension(mpq).ToLowerInvariant())
+					.ToList();
+			}
+
 			var defsPath = mpqArgs.DefsPath;
-			if (!DefsManager.EnsureDefinitions(ref defsPath, mpqArgs.Build))
+			if (!DefsManager.EnsureDefinitions(ref defsPath, mpqArgs.WoWBuild))
 				return Fail($"Definitions path not found: {mpqArgs.DefsPath}");
 			mpqArgs.DefsPath = defsPath;
 
 			if (!File.Exists(mpqArgs.MpqCliPath))
 				return Fail($"mpqcli not found: {mpqArgs.MpqCliPath}");
 
+			// Create report at the beginning
+			var report = ReportManager.CreateReport(mpqArgs);
+
 			// Auto-detect all localizable DBCs
 			Logger.Info("[*] Auto-detecting all localizable DBCs...");
-			var warnings = new List<string>();
-			var candidates = DbcScanner.GetLocalizableDbcCandidates(mpqArgs.MpqCliPath, mpqArgs.PatchMpq, mpqArgs.LocaleMpqs, mpqArgs.DefsPath, mpqArgs.Build, warnings);
-			var selectedDbcs = candidates.Select(c => c.Path).ToList();
-			Logger.Info($"[*] Found {selectedDbcs.Count} localizable table(s)");
+			var candidates = DbcScanner.GetLocalizableDbcCandidates(mpqArgs.MpqCliPath, mpqArgs.PatchMpq, mpqArgs.LocaleMpqs, mpqArgs.DefsPath, mpqArgs.WoWBuild, report.Warnings);
+			foreach (var candidate in candidates)
+			{
+				ReportManager.AddSelectedDbc(report, candidate.Path);
+			}
+			Logger.Info($"[*] Found {report.SelectedDbcs.Count} localizable table(s)");
 
 			// Resolve output path (directory vs file)
 			var outputPath = mpqArgs.OutputMpq;
@@ -193,42 +204,18 @@ namespace DbcLocalizer
 				outputPath = Path.Combine(outputPath, Path.GetFileName(mpqArgs.PatchMpq));
 			}
 			mpqArgs.OutputMpq = outputPath;
+			report.OutputMpq = outputPath;
 
 			// Copy patch to output even if no localizable DBCs found
 			Logger.Info($"[*] Copying patch MPQ to output: {mpqArgs.OutputMpq}");
 			File.Copy(mpqArgs.PatchMpq, mpqArgs.OutputMpq, overwrite: true);
 
-			if (selectedDbcs.Count == 0)
+			if (report.SelectedDbcs.Count == 0)
 			{
 				Logger.Info("[*] No localizable DBCs found, patch copied unchanged.");
-				
-				// Generate default report path if not specified
-				var reportPath = mpqArgs.ReportPath;
-				if (string.IsNullOrWhiteSpace(reportPath))
-				{
-					var patchName = Path.GetFileNameWithoutExtension(mpqArgs.PatchMpq);
-					var outputDir = Path.GetDirectoryName(mpqArgs.OutputMpq) ?? ".";
-					reportPath = Path.Combine(outputDir, $"{patchName}-report.json");
-				}
-				
+								
 				// Write report even when nothing was localized
-				// Clear warnings since they are not relevant when nothing was processed
-				var emptyReport = new LocalizeReport
-				{
-					TimestampUtc = DateTime.UtcNow.ToString("O"),
-					Build = mpqArgs.Build,
-					PatchMpq = mpqArgs.PatchMpq,
-					OutputMpq = mpqArgs.OutputMpq,
-					Languages = mpqArgs.Languages,
-					LocaleMpqs = mpqArgs.LocaleMpqs,
-					SelectedDbcs = new List<string>(),
-					PerLocale = new List<LocaleLocalizeResult>(),
-					TotalTablesMerged = 0,
-					TotalRowsMerged = 0,
-					TotalFieldsUpdated = 0,
-					Warnings = new List<string>() // Empty warnings when nothing was processed
-				};
-				WriteLocalizeReport(emptyReport, reportPath);
+				ReportManager.WriteReport(report, ReportManager.GetDefaultReportPath(mpqArgs.PatchMpq, mpqArgs.OutputMpq));
 				
 				return 0;
 			}
@@ -245,37 +232,29 @@ namespace DbcLocalizer
 			try
 			{
 				// Validate selected DBCs
-				var warnings2 = new List<string>();
-				selectedDbcs = DbcScanner.ValidateSelectedDbcs(mpqArgs.MpqCliPath, mpqArgs.PatchMpq, mpqArgs.LocaleMpqs, selectedDbcs, warnings2);
+				var validatedDbcs = DbcScanner.ValidateSelectedDbcs(mpqArgs.MpqCliPath, mpqArgs.PatchMpq, mpqArgs.LocaleMpqs, report.SelectedDbcs, report.Warnings);
 
-				foreach (var warn in warnings2)
+				foreach (var warn in report.Warnings)
 				{
 					Logger.Info($"[!] WARNING: {warn}");
 				}
 
-				if (selectedDbcs.Count == 0)
+				// Update selected DBCs with validated list
+				report.SelectedDbcs.Clear();
+				foreach (var dbc in validatedDbcs)
+				{
+					report.SelectedDbcs.Add(dbc);
+				}
+
+				if (report.SelectedDbcs.Count == 0)
 				{
 					Logger.Info("[*] No valid DBCs to localize.");
-					WriteLocalizeReport(new LocalizeReport
-					{
-						TimestampUtc = DateTime.UtcNow.ToString("O"),
-						Build = mpqArgs.Build,
-						PatchMpq = mpqArgs.PatchMpq,
-						OutputMpq = mpqArgs.OutputMpq,
-						Languages = mpqArgs.Languages,
-						LocaleMpqs = mpqArgs.LocaleMpqs,
-						SelectedDbcs = selectedDbcs,
-						PerLocale = new List<LocaleLocalizeResult>(),
-						TotalTablesMerged = 0,
-						TotalRowsMerged = 0,
-						TotalFieldsUpdated = 0,
-						Warnings = warnings2
-					}, mpqArgs.ReportPath);
+					ReportManager.WriteReport(report, ReportManager.GetDefaultReportPath(mpqArgs.PatchMpq, mpqArgs.OutputMpq));
 					return 0;
 				}
 
-				// Process localization
-				return PerformLocalization(mpqArgs, selectedDbcs, patchExtractDir, localeExtractDir, mergedDir, warnings2);
+				// Process localization with report
+				return PerformLocalization(mpqArgs, report, patchExtractDir, localeExtractDir, mergedDir);
 			}
 			finally
 			{
@@ -298,29 +277,16 @@ namespace DbcLocalizer
 			}
 		}
 
-		private static int PerformLocalization(LocalizeMpqArgs mpqArgs, List<string> selectedDbcs, 
-			string patchExtractDir, string localeExtractDir, string mergedDir, List<string> warnings)
+		private static int PerformLocalization(LocalizeMpqArgs mpqArgs, LocalizeReport report,
+			string patchExtractDir, string localeExtractDir, string mergedDir)
 		{
-			int totalTablesMerged = 0;
-			int totalRowsMerged = 0;
-			int totalFieldsUpdated = 0;
-			var perLocaleResults = new Dictionary<string, LocaleLocalizeResult>();
 			var globalSampleChanges = new Dictionary<string, List<SampleChange>>();
 			
 			// Initialize per-locale results
-			for (int locIdx = 0; locIdx < mpqArgs.LocaleMpqs.Count; locIdx++)
-			{
-				var lang = mpqArgs.Languages[locIdx];
-			var normalizedLang = NormalizeLocaleCode(lang);
-			perLocaleResults[lang] = new LocaleLocalizeResult
-			{
-				LocaleMpq = mpqArgs.LocaleMpqs[locIdx],
-				Language = normalizedLang, // Use normalized code in report
-				};
-			}
+			ReportManager.InitializeLocales(report, mpqArgs.Languages, mpqArgs.LocaleMpqs, NormalizeLocaleCode);
 
 			// Process each DBC table (per-DBC with all locales)
-			foreach (var dbcRelPath in selectedDbcs)
+			foreach (var dbcRelPath in report.SelectedDbcs.ToList())
 			{
 				try
 				{
@@ -362,27 +328,22 @@ namespace DbcLocalizer
 						localeDbcPaths,
 						mpqArgs.DefsPath,
 						mergedPath,
-						mpqArgs.Build,
-						"enUS",
+						mpqArgs.WoWBuild,
+						mpqArgs.FallbackLocale,
 						true,
 						globalSampleChanges);
 
-					// Aggregate stats per locale
+					// Update report statistics per locale
 					foreach (var kvp in localeStats)
 					{
 						var localeCode = kvp.Key;
 						var stats = kvp.Value;
+						var normalizedCode = NormalizeLocaleCode(localeCode);
 						
-						if (perLocaleResults.ContainsKey(localeCode))
-						{
-							if (stats.RowsMerged > 0)
-								perLocaleResults[localeCode].TablesMerged++;
-							perLocaleResults[localeCode].RowsMerged += stats.RowsMerged;
-							perLocaleResults[localeCode].FieldsUpdated += stats.FieldUpdates;
-						}
+						ReportManager.UpdateLocaleStats(report, normalizedCode, stats.RowsMerged, stats.FieldUpdates, true);
 					}
 
-					totalTablesMerged++;
+					ReportManager.IncrementTablesMerged(report);
 
 					// Remove old DBC from output MPQ
 					try
@@ -408,66 +369,30 @@ namespace DbcLocalizer
 				catch (Exception ex)
 				{
 					Logger.Error($"Failed to localize {dbcRelPath}: {ex.Message}");
-					warnings.Add($"Failed to localize {dbcRelPath}: {ex.Message}");
+					ReportManager.AddWarning(report, $"Failed to localize {dbcRelPath}: {ex.Message}");
 				}
 			}
 
 			// Calculate totals and log summaries
-			foreach (var result in perLocaleResults.Values)
+			ReportManager.CalculateTotals(report);
+			
+			foreach (var result in report.PerLocale)
 			{
-				totalRowsMerged += result.RowsMerged;
-				totalFieldsUpdated += result.FieldsUpdated;
 				Logger.Info($"[*] Locale {result.Language} summary: {result.TablesMerged} table(s), {result.RowsMerged} row(s), {result.FieldsUpdated} field(s)");
 			}
 
 			// Assign sample changes to the locale with most updates
-			var topLocale = perLocaleResults.Values.OrderByDescending(r => r.FieldsUpdated).FirstOrDefault();
-			if (topLocale != null)
-			{
-				topLocale.SampleChanges = globalSampleChanges;
-			}
+			ReportManager.AssignSampleChanges(report, globalSampleChanges);
 
 			Logger.Info($"[*] Output MPQ: {mpqArgs.OutputMpq}");
 
-			// Generate default report path if not specified
-			var reportPath = mpqArgs.ReportPath;
-			if (string.IsNullOrWhiteSpace(reportPath))
-			{
-				var patchName = Path.GetFileNameWithoutExtension(mpqArgs.PatchMpq);
-				var outputDir = Path.GetDirectoryName(mpqArgs.OutputMpq) ?? ".";
-				reportPath = Path.Combine(outputDir, $"{patchName}-report.json");
-			}
-
 			// Write report
-			var report = new LocalizeReport
-			{
-				TimestampUtc = DateTime.UtcNow.ToString("O"),
-				Build = mpqArgs.Build,
-				PatchMpq = mpqArgs.PatchMpq,
-				OutputMpq = mpqArgs.OutputMpq,
-				Languages = mpqArgs.Languages,
-				LocaleMpqs = mpqArgs.LocaleMpqs,
-				SelectedDbcs = selectedDbcs,
-				PerLocale = perLocaleResults.Values.ToList(),
-				TotalTablesMerged = totalTablesMerged,
-				TotalRowsMerged = totalRowsMerged,
-				TotalFieldsUpdated = totalFieldsUpdated,
-				Warnings = warnings
-			};
-			WriteLocalizeReport(report, reportPath);
+			ReportManager.WriteReport(report, ReportManager.GetDefaultReportPath(mpqArgs.PatchMpq, mpqArgs.OutputMpq));
 
 			return 0;
 		}
 
-		private static void WriteLocalizeReport(LocalizeReport report, string reportPath)
-		{
-			if (!string.IsNullOrWhiteSpace(reportPath))
-			{
-				var json = JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true });
-				File.WriteAllText(reportPath, json);
-				Logger.Info($"[*] Report written: {reportPath}");
-			}
-		}
+
 
 		private static int Fail(string message, int exitCode = 1)
 		{
